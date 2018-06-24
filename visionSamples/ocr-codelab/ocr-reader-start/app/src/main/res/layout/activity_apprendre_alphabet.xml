@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ApprendreAlphabetActivity">
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context="com.ponroy.florian.topquiz.GameActivity">
+
+        <TextView
+            android:id="@+id/activity_game_question_text"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="2"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="15dp"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:text="A quel jeu veux-tu jouer ?"></TextView>
+
+        <Button
+            android:id="@+id/trouver_lettre_btn"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:background="@android:color/white"
+            android:textSize="20sp"
+            android:text="Trouver la lettre"/>
+
+        <Button
+            android:id="@+id/trouver_1_ere_lettre_btn"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:background="@android:color/white"
+            android:textSize="20sp"
+            android:text="Trouver la 1ere lettre"/>
+
+        <Button
+            android:id="@+id/F_comme_btn"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:background="@android:color/white"
+            android:textSize="20sp"
+            android:text="F comme ..."/>
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

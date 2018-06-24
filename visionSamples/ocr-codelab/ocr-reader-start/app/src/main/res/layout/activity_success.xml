@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SuccessActivity">
+
+    <ImageButton
+        android:id="@+id/newbutton"
+        android:layout_width="375dp"
+        android:layout_height="408dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_centerInParent="true"
+        android:background="@null"
+        android:clickable="true"
+        android:elevation="0dp"
+        android:onClick="clickNew"
+        android:scaleType="centerInside"
+        android:src="@drawable/valider"
+        android:text="@string/hello" />
+
+</android.support.constraint.ConstraintLayout>

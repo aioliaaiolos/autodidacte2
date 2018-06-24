@@ -22,9 +22,16 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.hardware.Camera;
+import android.media.AudioAttributes;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.Voice;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -34,14 +41,26 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.samples.vision.ocrreader.ui.camera.CameraSource;
 import com.google.android.gms.samples.vision.ocrreader.ui.camera.CameraSourcePreview;
 import com.google.android.gms.samples.vision.ocrreader.ui.camera.GraphicOverlay;
+import com.google.android.gms.vision.text.TextBlock;
+import com.google.android.gms.vision.text.TextRecognizer;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.Vector;
 
 /**
  * Activity for the Ocr Detecting app.  This app detects text and displays the value with the
@@ -73,6 +92,198 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     // A TextToSpeech engine for speaking a String value.
     private TextToSpeech tts;
 
+    private boolean _firstTime = true;
+    private boolean _onTap = false;
+    private boolean _onReturnBack = false;
+    private int _flushDetectionBuffer = 0;
+
+
+    private OcrDetectorProcessor m_Detector;
+
+    private static String[] _letters = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+                                        "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
+
+    Hashtable<Integer, ArrayList<String>> _notation;
+    Hashtable<Integer, ArrayList<String>> _notationTemp;
+    int _currentLevel = 0;
+    int _currentWordIndex = -1;
+
+    int MAX_LEVEL = 3;
+    int SUCCESS_ACTIVITY = 1;
+
+
+    static int _currentLetterIndex = -1;
+
+    static Hashtable<Character, String> _letterToWord;
+
+    static public void Sleep(int milliseconds)
+    {
+        try {
+            Thread.sleep(milliseconds);
+        }
+        catch(Exception e)
+        {
+        }
+    }
+
+    private class DetectionCallback implements OcrDetectorProcessor.ITextDetectCallback
+    {
+        public void ExecuteFirstTime()
+        {
+            Sleep(1000);
+            askLetterAs();
+        }
+
+
+
+        public boolean Execute(Vector<String> strings)
+        {
+            if(_flushDetectionBuffer > 0) {
+                _flushDetectionBuffer--;
+                return true;
+            }
+
+            String rightWord = "";
+            String existingWord = "";
+            String possibleWord = "";
+            if(_gameType == GameType.eLettreComme) {
+                String word = wordFromLetter(currentLetter());
+                for(int i = 0; i < strings.size(); i++) {
+                    String s = strings.elementAt(i);
+                    s = s.toLowerCase();
+                    char c = s.charAt(0);
+                    String wfl = wordFromLetter(c);
+                    if(wfl.equals(s))
+                        possibleWord = s;
+                    if (s.equals(word)) {
+                        rightWord = s;
+                        m_Detector._waitingForDetection = false;
+                        break;
+                    }
+                }
+            }
+
+
+            if(!rightWord.isEmpty()) {
+                onSuccess(rightWord);
+            }
+            else if(!possibleWord.isEmpty()){
+                onFail(possibleWord);
+            }
+
+            return true;
+        }
+    }
+
+    void onSuccess(String wordFound)
+    {
+        boolean version1 = false;
+        boolean version2 = false;
+        boolean version3 = true;
+        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        boolean flush = false;
+        if(flush) {
+            editor.clear();
+            editor.commit();
+        }
+
+        String level = prefs.getString(wordFound, "");
+
+        Integer nLevel = Integer.parseInt(level) + 1;
+        level = Integer.toString(nLevel);
+        editor.putString(wordFound, level);
+        editor.commit();
+
+        String test = prefs.getString(wordFound, "");
+
+
+        // test
+        /*
+        String test = prefs.getString(wordFound, "");
+        if(test.isEmpty()) {
+            editor.putString(wordFound, "wladimir");
+            editor.apply();
+            String s = prefs.getString(wordFound, "");
+            s = s;
+        }
+        */
+        // end test
+
+
+
+
+
+
+        String sentence = "Bravo, " + wordFound + " commence bien par " + currentLetter() + " ! ";
+
+        if(version1) {
+            Sleep(4000);
+            askLetterAs();
+        }
+        else if(version2) {
+            Sleep(1000);
+
+            //tts.setSpeechRate(0.6f);
+            tts.speak(sentence, TextToSpeech.QUEUE_ADD, null, "DEFAULT");
+            Intent ocrCaptureActivity = new Intent(OcrCaptureActivity.this, SuccessActivity.class);
+            startActivityForResult(ocrCaptureActivity, SUCCESS_ACTIVITY);
+        }
+        else if(version3)
+        {
+            Intent ocrCaptureActivity = new Intent(OcrCaptureActivity.this, SuccessActivity.class);
+            ocrCaptureActivity.putExtra("sentence", sentence);
+            startActivityForResult(ocrCaptureActivity, SUCCESS_ACTIVITY);
+        }
+    }
+
+    void onFail(String wrongWord)
+    {
+        m_Detector._waitingForDetection = false;
+        String sentence = "Tu tes trompé, " + wrongWord + " ne commence pas par " + currentLetter() + ", essaye encore ! ";
+        tts.speak(sentence, TextToSpeech.QUEUE_ADD, null, "DEFAULT");
+        Sleep(1000);
+        _flushDetectionBuffer = 5;
+        m_Detector._waitingForDetection = true;
+    }
+
+    //@override
+    public void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        if(requestCode == SUCCESS_ACTIVITY) {
+            //Sleep(10000);
+            tts.playSilentUtterance(2000, TextToSpeech.QUEUE_ADD, "silence");
+            _onReturnBack = true;
+            askLetterAs();
+            _onReturnBack = false;
+            Sleep(1000);
+            m_Detector._waitingForDetection = true;
+            _flushDetectionBuffer = 10;
+        }
+    }
+
+    boolean isIntoWordList(String word)
+    {
+        return _letterToWord.contains(word);
+    }
+
+    String wordFromLetter(char c)
+    {
+        if(c < 'a')
+            c = (char)(c + ('a' - 'A'));
+        if(_letterToWord.containsKey(c))
+            return _letterToWord.get(c);
+        return "";
+    }
+
+    public enum GameType
+    {
+        eTrouverLettre,
+        eLettreComme;
+    }
+
+    public static GameType _gameType;
+
     /**
      * Initializes the UI and creates the detector pipeline.
      */
@@ -86,7 +297,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
         // Set good defaults for capturing text.
         boolean autoFocus = true;
-        boolean useFlash = false;
+        boolean useFlash = true;
 
         // Check for the camera permission before accessing the camera.  If the
         // permission is not granted yet, request permission.
@@ -105,6 +316,139 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 .show();
 
         // TODO: Set up the Text To Speech engine.
+        TextToSpeech.OnInitListener listener =
+                new TextToSpeech.OnInitListener() {
+                    @Override
+                    public void onInit(final int status) {
+                        if (status == TextToSpeech.SUCCESS) {
+                            Log.d("TTS", "Text to speech engine started successfully.");
+                            tts.setLanguage(Locale.FRANCE);
+                        } else {
+                            Log.d("TTS", "Error starting the text to speech engine.");
+                        }
+                    }
+                };
+        tts = new TextToSpeech(this.getApplicationContext(), listener);
+
+        if(_letterToWord == null)
+            _letterToWord = new Hashtable<Character, String>();
+
+        if(_letterToWord.size() == 0) {
+            initLetterToWord();
+        }
+
+        initNotations();
+        _firstTime = true;
+
+    }
+
+    private void initNotations()
+    {
+        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        String init = preferences.getString("init", null);
+        Iterator<Character> it = _letterToWord.keySet().iterator();
+        if(init == null){
+            SharedPreferences.Editor editor = preferences.edit();
+
+            while(it.hasNext()) {
+                String value = _letterToWord.get(it.next());
+                editor.putInt(value, 0);
+            }
+            editor.apply();
+            _notation = new Hashtable<Integer, ArrayList<String>>();
+            _notation.put(0, new ArrayList<String>());
+            it = _letterToWord.keySet().iterator();
+            while(it.hasNext()) {
+                String s = _letterToWord.get(it.next());
+                _notation.get(0).add(s);
+            }
+        }
+        else {
+            it = _letterToWord.keySet().iterator();
+            while(it.hasNext()) {
+                String value = _letterToWord.get(it.next());
+                int level = preferences.getInt(value, 0);
+                _notation.get(level).add(value);
+            }
+        }
+    }
+
+    private void initLetterToWord()
+    {
+        _letterToWord.put('a', "avion");
+        _letterToWord.put('b', "banane");
+        _letterToWord.put('c', "carotte");
+        _letterToWord.put('d', "dinosaure");
+        _letterToWord.put('e', "éléphant");
+        _letterToWord.put('f', "fraise");
+        _letterToWord.put('g', "girafe");
+        _letterToWord.put('h', "hérisson");
+        _letterToWord.put('i', "igloo");
+        _letterToWord.put('j', "jus");
+        _letterToWord.put('k', "kangourou");
+        _letterToWord.put('l', "lion");
+        _letterToWord.put('m', "mangue");
+        _letterToWord.put('n', "nuage");
+        _letterToWord.put('o', "orange");
+        _letterToWord.put('p', "pomme");
+        _letterToWord.put('q', "quatre");
+        _letterToWord.put('r', "robot");
+        _letterToWord.put('s', "soleil");
+        _letterToWord.put('t', "tigre");
+        _letterToWord.put('u', "ustensiles");
+        _letterToWord.put('v', "voiture");
+        _letterToWord.put('w', "wagon");
+        _letterToWord.put('x', "xylophone");
+        _letterToWord.put('y', "yaourt");
+
+        
+        _letterToWord.put('z', "zèbre");
+    }
+
+    private Character currentLetter()
+    {
+        return _notation.get(_currentLevel).get(_currentWordIndex).charAt(0);
+    }
+
+    private char nextLetter()
+    {
+        _currentWordIndex++;
+        if(_currentWordIndex >= _notation.get(_currentLevel).size()) {
+            do {
+                _currentLevel++;
+            }
+            while(_notation.get(_currentLevel).size() == 0 || _currentLevel < MAX_LEVEL);
+            _currentWordIndex = 0;
+        }
+        return currentLetter();
+    }
+
+    public void askLetterAs()
+    {
+        tts.setLanguage(Locale.FRANCE);
+        char c;
+        if(!_onTap){
+            m_Detector._waitingForDetection = false;
+            c = nextLetter();
+        }
+        else
+            c = currentLetter();
+
+        tts.setSpeechRate(0.8f);
+        String sentence = "";
+        if(_firstTime) {
+            sentence = "Bonjour, quel mot commence par la lettre " + c + " ?";
+            _firstTime = false;
+        }
+        else if (_onTap)
+            sentence = "Quel mot commence par la lettre '" + c + "' ?";
+        else
+            sentence = "Lettre suivante, quel mot commence par " + c + " ?";
+        tts.speak(sentence, TextToSpeech.QUEUE_ADD, null, "DEFAULT");
+        if(!_onTap && !_onReturnBack) {
+            Sleep(4000);
+            m_Detector._waitingForDetection = true;
+        }
     }
 
     /**
@@ -160,12 +504,40 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     private void createCameraSource(boolean autoFocus, boolean useFlash) {
         Context context = getApplicationContext();
 
-        // TODO: Create the TextRecognizer
-        // TODO: Set the TextRecognizer's Processor.
+        // Create the TextRecognizer
+        TextRecognizer textRecognizer = new TextRecognizer.Builder(context).build();
 
-        // TODO: Check if the TextRecognizer is operational.
+        // Set the TextRecognizer's Processor.
+        m_Detector = new OcrDetectorProcessor(graphicOverlay);
+        DetectionCallback onWordDetected = new DetectionCallback();
+        m_Detector.setDetectionCallback(onWordDetected);
+        textRecognizer.setProcessor(m_Detector);
 
-        // TODO: Create the cameraSource using the TextRecognizer.
+
+        // Check if the TextRecognizer is operational.
+        if (!textRecognizer.isOperational()) {
+            Log.w(TAG, "Detector dependencies are not yet available.");
+
+            // Check for low storage.  If there is low storage, the native library will not be
+            // downloaded, so detection will not become operational.
+            IntentFilter lowstorageFilter = new IntentFilter(Intent.ACTION_DEVICE_STORAGE_LOW);
+            boolean hasLowStorage = registerReceiver(null, lowstorageFilter) != null;
+
+            if (hasLowStorage) {
+                Toast.makeText(this, R.string.low_storage_error, Toast.LENGTH_LONG).show();
+                Log.w(TAG, getString(R.string.low_storage_error));
+            }
+        }
+
+        // Create the cameraSource using the TextRecognizer.
+        cameraSource =
+                new CameraSource.Builder(getApplicationContext(), textRecognizer)
+                        .setFacing(CameraSource.CAMERA_FACING_BACK)
+                        .setRequestedPreviewSize(1280, 1024)
+                        .setRequestedFps(15.0f)
+                        .setFlashMode(useFlash ? Camera.Parameters.FLASH_MODE_TORCH : null)
+                        .setFocusMode(autoFocus ? Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO : null)
+                        .build();
     }
 
     /**
@@ -275,6 +647,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 cameraSource = null;
             }
         }
+
     }
 
     /**
@@ -286,7 +659,26 @@ public final class OcrCaptureActivity extends AppCompatActivity {
      */
     private boolean onTap(float rawX, float rawY) {
         // TODO: Speak the text when the user taps on screen.
-        return false;
+        OcrGraphic graphic = graphicOverlay.getGraphicAtLocation(rawX, rawY);
+        TextBlock text = null;
+        if (graphic != null) {
+            text = graphic.getTextBlock();
+            if (text != null && text.getValue() != null) {
+                Log.d(TAG, "text data is being spoken! " + text.getValue());
+                // TODO: Speak the string.
+                tts.speak(text.getValue(), TextToSpeech.QUEUE_ADD, null, "DEFAULT");
+            }
+            else {
+                Log.d(TAG, "text data is null");
+            }
+        }
+        else {
+            Log.d(TAG,"no text detected");
+        }
+        _onTap = true;
+        askLetterAs();
+        _onTap = false;
+        return text != null;
     }
 
     private class CaptureGestureListener extends GestureDetector.SimpleOnGestureListener {
