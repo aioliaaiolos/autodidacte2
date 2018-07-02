@@ -13,7 +13,21 @@ public class ApprendreAlphabetActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_apprendre_alphabet);
 
+        Button trouverLettre = findViewById(R.id.trouver_lettre_btn);
         Button lettreComme = findViewById(R.id.F_comme_btn);
+
+
+        trouverLettre.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v)
+                    {
+                        OcrCaptureActivity._gameType = OcrCaptureActivity.GameType.eTrouverLettre;
+                        Intent ocrCaptureActivity = new Intent(ApprendreAlphabetActivity.this, OcrCaptureActivity.class);
+                        startActivity(ocrCaptureActivity);
+                    }
+                }
+                );
 
         lettreComme.setOnClickListener(
                 new View.OnClickListener() {

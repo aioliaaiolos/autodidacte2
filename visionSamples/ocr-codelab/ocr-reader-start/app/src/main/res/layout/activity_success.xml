@@ -18,7 +18,8 @@
         android:elevation="0dp"
         android:onClick="clickNew"
         android:scaleType="centerInside"
-        android:src="@drawable/valider"
         android:text="@string/hello" />
+
+    <!--android:src="@drawable/valider" -->
 
 </android.support.constraint.ConstraintLayout>

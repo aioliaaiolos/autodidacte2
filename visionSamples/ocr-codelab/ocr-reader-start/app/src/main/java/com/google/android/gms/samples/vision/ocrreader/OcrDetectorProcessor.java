@@ -30,6 +30,8 @@ import java.util.Vector;
  * as OcrGraphics.
  * TODO: Make this implement Detector.Processor<TextBlock> and add text to the GraphicOverlay
  */
+
+
 public class OcrDetectorProcessor implements Detector.Processor<TextBlock> {
 
     private boolean _debugInfos = false;
