@@ -1,4 +1,4 @@
-package com.google.android.gms.samples.vision.ocrreader;
+package com.autodidacte;
 
 import android.content.Intent;
 import android.graphics.Bitmap;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.google.android.gms.samples.vision.ocrreader"
+    package="com.autodidacte"
     android:installLocation="auto">
 
     <uses-feature android:name="android.hardware.camera" />
@@ -12,14 +12,14 @@
         android:fullBackupContent="false"
         android:hardwareAccelerated="true"
         android:icon="@drawable/icon"
-        android:label="OcrReaderApp"
+        android:label="Les editions autodidacte"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat">
         <meta-data
-            android:name="com.google.android.gms.version"
+            android:name="com.autodidacte.version"
             android:value="@integer/google_play_services_version" />
         <meta-data
-            android:name="com.google.android.gms.vision.DEPENDENCIES"
+            android:name="com.autodidacte.vision.DEPENDENCIES"
             android:value="ocr" />
 
         <activity
