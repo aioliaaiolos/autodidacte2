@@ -3,11 +3,16 @@ package com.autodidacte;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -27,16 +32,33 @@ public class MainActivity extends AppCompatActivity {
     private Button mApprendreAphabet;
     boolean mCredentialsValidated = false;
 
+    
+    private void playVideo()
+    {
+        VideoView videoview = (VideoView) findViewById(R.id.videoView);
+        String res = "android.resource://"+getPackageName()+"/"+R.raw.mainmenu;
+        Uri uri = Uri.parse("android.resource://"+getPackageName()+"/"+R.raw.mainmenu);
+        videoview.setVideoURI(uri);
+        videoview.start();
+    }
+
     @Override
     protected void onResume()
     {
         super.onResume();
+        playVideo();
 
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
+
         setContentView(R.layout.activity_main);
 
         SharedPreferences prefs = getPreferences(MODE_PRIVATE);
@@ -47,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
             editor.remove("registred");
             editor.apply();
         }
-
 
         String registred = prefs.getString("registred", "false");
         mCredentialsValidated = (registred.equals("true"));
@@ -128,11 +149,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-/*
-        VideoView video = (VideoView) findViewById(R.id.videoView);
-        video.setMediaController(new MediaController(this));
-        video.setVideoURI(Uri.parse("file://sdcard/video/example.avi"));
-        video.start();*/
+        playVideo();
 
 
 

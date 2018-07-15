@@ -3,8 +3,12 @@ xmlns:android="http://schemas.android.com/apk/res/android"
 xmlns:tools="http://schemas.android.com/tools"
 android:layout_width="match_parent"
 android:layout_height="match_parent"
-android:orientation="vertical"
+android:orientation="horizontal"
+android:screenOrientation="sensorLandscape"
+android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
 tools:context=".MainActivity">
+
+    <include layout="@layout/video_background" />
 
 <Button
     android:id="@+id/activity_main_alphabet_txt"
