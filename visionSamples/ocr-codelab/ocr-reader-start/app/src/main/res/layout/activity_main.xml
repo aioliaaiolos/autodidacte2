@@ -12,7 +12,7 @@
         android:layout_width="75dp"
         android:layout_height="60dp"
         android:id="@+id/trouver_lettre"
-        android:background="#AA888888"
+        android:background="#00888888"
         android:onClick="trouverLettre"
         android:layout_alignLeft="@+id/videoView"
         android:layout_alignBottom="@+id/videoView"/>
@@ -23,7 +23,7 @@
         android:layout_width="45dp"
         android:layout_height="50dp"
         android:id="@+id/trouver_mot"
-        android:background="#AA888888"
+        android:background="#00888888"
         android:onClick="trouverMot"
         android:layout_alignLeft="@+id/videoView"
         android:layout_alignBottom="@+id/videoView"/>
@@ -34,7 +34,7 @@
         android:layout_width="50dp"
         android:layout_height="62dp"
         android:id="@+id/trouver_1_ere_lettre"
-        android:background="#AA888888"
+        android:background="#00888888"
         android:onClick="trouver1ereLettre"
         android:layout_alignLeft="@+id/videoView"
         android:layout_alignBottom="@+id/videoView"/>
@@ -45,7 +45,7 @@
         android:layout_width="61dp"
         android:layout_height="25dp"
         android:id="@+id/options"
-        android:background="#AA888888"
+        android:background="#00888888"
         android:onClick="openOptions"
         android:layout_alignLeft="@+id/videoView"
         android:layout_alignBottom="@+id/videoView"/>
@@ -56,7 +56,7 @@
         android:layout_width="61dp"
         android:layout_height="25dp"
         android:id="@+id/help"
-        android:background="#AA888888"
+        android:background="#00888888"
         android:onClick="openHelp"
         android:layout_alignLeft="@+id/videoView"
         android:layout_alignBottom="@+id/videoView"/>
@@ -67,7 +67,7 @@
         android:layout_width="61dp"
         android:layout_height="35dp"
         android:id="@+id/exit"
-        android:background="#AA888888"
+        android:background="#00888888"
         android:onClick="exit"
         android:layout_alignLeft="@+id/videoView"
         android:layout_alignBottom="@+id/videoView"/>
