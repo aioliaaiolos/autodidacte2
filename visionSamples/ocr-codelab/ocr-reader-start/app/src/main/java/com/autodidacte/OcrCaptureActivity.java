@@ -25,13 +25,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
-import android.media.AudioAttributes;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
-import android.speech.tts.Voice;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -41,6 +39,8 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -52,14 +52,10 @@ import com.google.android.gms.vision.text.TextBlock;
 import com.google.android.gms.vision.text.TextRecognizer;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.Vector;
 
 /**
@@ -100,20 +96,24 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
     private OcrDetectorProcessor m_Detector;
 
-    Hashtable<Integer, ArrayList<String>> _notation;
+    Hashtable<Integer, ArrayList<String>> _notationWord;
     Hashtable<Integer, ArrayList<Character>> _notationLetter;
-    int _currentLevel = 0;
-    int _currentLetterLevel = 0;
-    int _currentWordIndex = -1;
-    int _currentLetterIndex = -1;
+    Hashtable<Integer, ArrayList<Character>> _notationFirstLetter;
+    private int _currentLevel = 0;
+    private int _currentLetterLevel = 0;
+    private int _currentWordIndex = -1;
+    private int _currentLetterIndex = -1;
+    private int _currentFirstLetterIndex = -1;
+    private int _currentFirstLetterLevel = 0;
 
     int MAX_LEVEL = 3;
     int SUCCESS_ACTIVITY = 1;
 
 
-    //static int _currentLetterIndex = -1;
 
     static Hashtable<Character, String> _letterToWord;
+    static Hashtable<String, Character> _WordToLetter;
+
 
     static public void Sleep(int milliseconds)
     {
@@ -130,7 +130,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         public void ExecuteFirstTime()
         {
             Sleep(1000);
-            askLetterAs();
+            askNextItem();
         }
 
 
@@ -146,7 +146,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             String possibleWord = "";
             String ExpectedWord = "";
             boolean trouve = false;
-            ExpectedWord = wordFromLetter(currentLetter());
+            ExpectedWord = wordFromLetter(currentItem().charAt(0));
             for (int i = 0; i < strings.size(); i++) {
                 String s = strings.elementAt(i);
                 if (_gameType == GameType.eLettreComme) {
@@ -163,7 +163,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 }
                 else if(_gameType == GameType.eTrouverLettre) {
                     if(s.length() == 1) {
-                        String sCurrent = String.valueOf(currentLetter());
+                        String sCurrent = String.valueOf(currentItem());
                         if (s.equals(sCurrent)) {
                             m_Detector._waitingForDetection = false;
                             trouve = true;
@@ -182,7 +182,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             }
             else if(_gameType == GameType.eTrouverLettre) {
                 if(trouve)
-                    onLetterSuccess(currentLetter());
+                    onLetterSuccess(currentItem().charAt(0));
             }
 
             return true;
@@ -215,33 +215,17 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         editor.commit();
         String test = prefs.getString(wordFound, "");
 
-        String sentence = "Bravo, " + wordFound + " commence bien par " + currentLetter() + " ! ";
-
-        if(version1) {
-            Sleep(4000);
-            askLetterAs();
-        }
-        else if(version2) {
-            Sleep(1000);
-
-            //tts.setSpeechRate(0.6f);
-            tts.speak(sentence, TextToSpeech.QUEUE_ADD, null, "DEFAULT");
-            Intent ocrCaptureActivity = new Intent(OcrCaptureActivity.this, SuccessActivity.class);
-            startActivityForResult(ocrCaptureActivity, SUCCESS_ACTIVITY);
-        }
-        else if(version3)
-        {
-            Intent ocrCaptureActivity = new Intent(OcrCaptureActivity.this, SuccessActivity.class);
-            ocrCaptureActivity.putExtra("sentence", sentence);
-            ocrCaptureActivity.putExtra("result", "success");
-            startActivityForResult(ocrCaptureActivity, SUCCESS_ACTIVITY);
-        }
+        String sentence = "Bravo, " + wordFound + " commence bien par " + currentItem() + " ! ";
+        Intent ocrCaptureActivity = new Intent(OcrCaptureActivity.this, SuccessActivity.class);
+        ocrCaptureActivity.putExtra("sentence", sentence);
+        ocrCaptureActivity.putExtra("result", "success");
+        startActivityForResult(ocrCaptureActivity, SUCCESS_ACTIVITY);
     }
 
     void onFail(String wrongWord, String ExpectedWord)
     {
         m_Detector._waitingForDetection = false;
-        String sentence = "Tu tes trompé, " + wrongWord + " ne commence pas par, " + currentLetter() +
+        String sentence = "Tu tes trompé, " + wrongWord + " ne commence pas par, " + currentItem() +
                           ", le bon mot etait " + ExpectedWord;
         Intent ocrCaptureActivity = new Intent(OcrCaptureActivity.this, SuccessActivity.class);
         ocrCaptureActivity.putExtra("sentence", sentence);
@@ -255,7 +239,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         if(requestCode == SUCCESS_ACTIVITY) {
             tts.playSilentUtterance(2000, TextToSpeech.QUEUE_ADD, "silence");
             _onReturnBack = true;
-            askLetterAs();
+            askNextItem();
             _onReturnBack = false;
             Sleep(1000);
             m_Detector._waitingForDetection = true;
@@ -263,7 +247,6 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 _flushDetectionBuffer = 3;
             else if(_gameType == GameType.eTrouverLettre)
                 _flushDetectionBuffer = 1;
-
         }
     }
 
@@ -284,6 +267,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     public enum GameType
     {
         eTrouverLettre,
+        eTrouver1ereLettre,
         eLettreComme;
     }
 
@@ -295,6 +279,12 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
+
         setContentView(R.layout.ocr_capture);
         _currentWordIndex = -1;
         _currentLetterIndex = -1;
@@ -353,13 +343,14 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             initLetterToWord();
         }
 
-        initNotations();
-        initNotationLetter();
+        initNotationWords();
+        initNotationLetter(_notationLetter);
+        initNotationLetter(_notationFirstLetter);
         _firstTime = true;
 
     }
 
-    private void initNotations()
+    private void initNotationWords()
     {
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
         String init = preferences.getString("init", null);
@@ -376,22 +367,22 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             editor.apply();
         }
 
-        _notation = new Hashtable<Integer, ArrayList<String>>();
+        _notationWord = new Hashtable<Integer, ArrayList<String>>();
 
         it = _letterToWord.keySet().iterator();
         while(it.hasNext()) {
             String value = _letterToWord.get(it.next());
             String level = preferences.getString(value, "");
             int nLevel = Integer.parseInt(level);
-            if(_notation.containsKey(nLevel) == false)
-                _notation.put(nLevel, new ArrayList<String>());
-            _notation.get(nLevel).add(value);
+            if(_notationWord.containsKey(nLevel) == false)
+                _notationWord.put(nLevel, new ArrayList<String>());
+            _notationWord.get(nLevel).add(value);
         }
     }
 
-    private void initNotationLetter()
+    private void initNotationLetter(Hashtable<Integer, ArrayList<Character>> letters)
     {
-        _notationLetter = new Hashtable<Integer, ArrayList<Character>>();
+        letters = new Hashtable<Integer, ArrayList<Character>>();
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
         String init = preferences.getString("iniLetters", null);
         if(init == null){
@@ -410,11 +401,11 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             editor.apply();
         }
 
-        initNotationLetterArray('a');
-        initNotationLetterArray('A');
+        initNotationLetterArray('a', letters);
+        initNotationLetterArray('A', letters);
     }
 
-    void initNotationLetterArray(Character firstChar)
+    void initNotationLetterArray(Character firstChar, Hashtable<Integer, ArrayList<Character>> letters)
     {
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
         for(int i = 0; i < 26; i++) {
@@ -422,9 +413,9 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             String value = String.valueOf(letter);
             String level = preferences.getString(value, "");
             int nLevel = Integer.parseInt(level);
-            if(_notationLetter.containsKey(nLevel) == false)
-                _notationLetter.put(nLevel, new ArrayList<Character>());
-            _notationLetter.get(nLevel).add(letter);
+            if(letters.containsKey(nLevel) == false)
+                letters.put(nLevel, new ArrayList<Character>());
+            letters.get(nLevel).add(letter);
         }
     }
 
@@ -458,24 +449,56 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         _letterToWord.put('z', "zèbre");
     }
 
-    private Character currentLetter()
+    private void initWordToLetter()
     {
-        if(_gameType == GameType.eLettreComme)
-            return _notation.get(_currentLevel).get(_currentWordIndex).charAt(0);
-        else if(_gameType == GameType.eTrouverLettre)
-            return _notationLetter.get(_currentLetterLevel).get(_currentLetterIndex);
-        return 0;
+        _WordToLetter.put("avion", 'a');
+        _WordToLetter.put("banane", 'b');
+        _WordToLetter.put("carotte", 'c');
+        _WordToLetter.put("dinosaure", 'd');
+        _WordToLetter.put("éléphant", 'e');
+        _WordToLetter.put("fraise", 'f');
+        _WordToLetter.put("girafe", 'g');
+        _WordToLetter.put("hérisson", 'h');
+        _WordToLetter.put("igloo", 'i');
+        _WordToLetter.put("jus", 'j');
+        _WordToLetter.put("kangourou", 'k');
+        _WordToLetter.put("lion", 'l');
+        _WordToLetter.put("mangue", 'm');
+        _WordToLetter.put("nuage", 'n');
+        _WordToLetter.put("orange", 'o');
+        _WordToLetter.put("pomme", 'p');
+        _WordToLetter.put("quatre", 'q');
+        _WordToLetter.put("robot", 'r');
+        _WordToLetter.put("soleil", 's');
+        _WordToLetter.put("tigre", 't');
+        _WordToLetter.put("ustensiles", 'u');
+        _WordToLetter.put("voiture", 'v');
+        _WordToLetter.put("wagon", 'w');
+        _WordToLetter.put("xylophone", 'x');
+        _WordToLetter.put("yaourt", 'y');
+        _WordToLetter.put("zèbre", 'z');
     }
 
-    private char nextLetter()
+    private String currentItem()
+    {
+        if(_gameType == GameType.eLettreComme)
+            return  _notationWord.get(_currentLevel).get(_currentWordIndex).substring(0, 1);
+        else if(_gameType == GameType.eTrouverLettre)
+            return _notationLetter.get(_currentLetterLevel).get(_currentLetterIndex).toString();
+        else if(_gameType == GameType.eTrouver1ereLettre)
+            return _notationFirstLetter.get(_currentFirstLetterLevel).get(_currentFirstLetterIndex).toString();
+        return "";
+    }
+
+    private String nextItem()
     {
         if(_gameType == GameType.eLettreComme) {
             _currentWordIndex++;
-            if (_currentWordIndex >= _notation.get(_currentLevel).size()) {
+            if (_currentWordIndex >= _notationWord.get(_currentLevel).size()) {
                 do {
                     _currentLevel++;
                 }
-                while (_notation.get(_currentLevel).size() == 0 || _currentLevel < MAX_LEVEL);
+                while (_notationWord.get(_currentLevel).size() == 0 || _currentLevel < MAX_LEVEL);
                 _currentWordIndex = 0;
             }
         }
@@ -485,23 +508,33 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 do {
                     _currentLetterLevel++;
                 }
-                while (_notation.get(_currentLetterLevel).size() == 0 || _currentLetterLevel < MAX_LEVEL);
+                while (_notationWord.get(_currentLetterLevel).size() == 0 || _currentLetterLevel < MAX_LEVEL);
                 _currentLetterIndex = 0;
             }
         }
-        return currentLetter();
+        else if(_gameType == GameType.eTrouver1ereLettre) {
+            _currentFirstLetterIndex++;
+            if (_currentFirstLetterIndex >= _notationFirstLetter.get(_currentFirstLetterLevel).size()) {
+                do {
+                    _currentFirstLetterLevel++;
+                }
+                while (_notationFirstLetter.get(_currentFirstLetterLevel).size() == 0 || _currentFirstLetterLevel < MAX_LEVEL);
+                _currentFirstLetterIndex = 0;
+            }
+        }
+        return currentItem();
     }
 
-    public void askLetterAs()
+    public void askNextItem()
     {
         tts.setLanguage(Locale.FRANCE);
-        char c;
+        String c;
         if(!_onTap){
             m_Detector._waitingForDetection = false;
-            c = nextLetter();
+            c = nextItem();
         }
         else
-            c = currentLetter();
+            c = currentItem();
 
         tts.setSpeechRate(0.8f);
         String sentence = "";
@@ -514,15 +547,30 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 sentence += "Quel mot commence par la lettre, " + c;
             else
                 sentence = "Lettre suivante, quel mot commence par, " + c;
-            if(c == 'y' || c == 'Y')
+            if(c == "y" || c == "Y")
                 sentence += " grec ";
         }
         else if(_gameType == GameType.eTrouverLettre){
             if (_firstTime) {
                 sentence = "Bonjour, trouve moi la lettre, " + c;
-                if(c == 'y' || c == 'Y')
+                if(c == "y" || c == "Y")
                     sentence += " grec ";
-                if(isLow(c))
+                if(isLow(c.charAt(0)))
+                    sentence += " minuscule";
+                else
+                    sentence += " majuscule";
+                _firstTime = false;
+            } else if (_onTap)
+                sentence = "Trouve moi la lettre, " + c;
+            else
+                sentence = "Lettre suivante, trouve moi la lettre, " + c + " ?";
+        }
+        else if(_gameType == GameType.eTrouver1ereLettre){
+            if (_firstTime) {
+                sentence = "Bonjour, par quelle lettre commence le mot " + c;
+                if(c == "y" || c == "Y")
+                    sentence += " grec ";
+                if(isLow(c.charAt(0)))
                     sentence += " minuscule";
                 else
                     sentence += " majuscule";
@@ -770,7 +818,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             Log.d(TAG,"no text detected");
         }
         _onTap = true;
-        askLetterAs();
+        askNextItem();
         _onTap = false;
         return text != null;
     }

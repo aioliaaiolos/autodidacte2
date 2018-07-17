@@ -1,32 +1,99 @@
-<LinearLayout
-xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:tools="http://schemas.android.com/tools"
-android:layout_width="match_parent"
-android:layout_height="match_parent"
-android:orientation="horizontal"
-android:screenOrientation="sensorLandscape"
-android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
-tools:context=".MainActivity">
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#29000000">
 
     <include layout="@layout/video_background" />
 
-<Button
-    android:id="@+id/activity_main_alphabet_txt"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginTop="20dp"
-    android:padding="10dp"
-    android:layout_gravity="center_horizontal"
-    android:textSize="20sp"
-    android:background="@android:color/white"
-    android:text="Apprendre l'alphabet"/>
+    <Button
+        android:translationX="240dp"
+        android:translationY="24dp"
+        android:layout_width="75dp"
+        android:layout_height="60dp"
+        android:id="@+id/trouver_lettre"
+        android:background="#AA888888"
+        android:onClick="trouverLettre"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
 
-    <!--
-    <VideoView android:id="@+id/videoView"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent" />
+    <Button
+        android:translationX="435dp"
+        android:translationY="89dp"
+        android:layout_width="45dp"
+        android:layout_height="50dp"
+        android:id="@+id/trouver_mot"
+        android:background="#AA888888"
+        android:onClick="trouverMot"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
+    <Button
+        android:translationX="279dp"
+        android:translationY="224dp"
+        android:layout_width="50dp"
+        android:layout_height="62dp"
+        android:id="@+id/trouver_1_ere_lettre"
+        android:background="#AA888888"
+        android:onClick="trouver1ereLettre"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
+    <Button
+        android:translationX="481dp"
+        android:translationY="8dp"
+        android:layout_width="61dp"
+        android:layout_height="25dp"
+        android:id="@+id/options"
+        android:background="#AA888888"
+        android:onClick="openOptions"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
+    <Button
+        android:translationX="481dp"
+        android:translationY="43dp"
+        android:layout_width="61dp"
+        android:layout_height="25dp"
+        android:id="@+id/help"
+        android:background="#AA888888"
+        android:onClick="openHelp"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
+    <Button
+        android:translationX="110dp"
+        android:translationY="10dp"
+        android:layout_width="61dp"
+        android:layout_height="35dp"
+        android:id="@+id/exit"
+        android:background="#AA888888"
+        android:onClick="exit"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+<!--
+    <RelativeLayout
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:id="@+id/clikeable1"
+        android:onClick="action1"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView">
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:id="@+id/clikeable2"
+        android:onClick="action2"
+        android:layout_alignRight="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView">
+
+    </RelativeLayout>
+
 -->
 
 
 
-</LinearLayout>
+</RelativeLayout>

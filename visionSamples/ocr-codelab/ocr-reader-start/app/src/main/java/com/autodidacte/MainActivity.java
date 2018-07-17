@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.support.v7.app.AlertDialog;
@@ -31,15 +32,64 @@ public class MainActivity extends AppCompatActivity {
 
     private Button mApprendreAphabet;
     boolean mCredentialsValidated = false;
+    VideoView mVideo;
+    Runnable mVideoAction = null;
+    private MediaPlayer.OnSeekCompleteListener mOnSeekCompleteListener = null;
 
+
+    void testPlayVideo()
+    {
+        final VideoView video = (VideoView) findViewById(R.id.videoView);
+        final MediaController controller = new MediaController(this);
+        Uri uri = Uri.parse("android.resource://"+getPackageName()+"/"+R.raw.mainmenu);
+        video.setVideoURI(uri);
+        video.setMediaController(controller);
+        controller.setMediaPlayer(video);
+        video.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            public void onPrepared(MediaPlayer mp) {
+                int duration = video.getDuration();
+                video.requestFocus();
+                video.start();
+                controller.show();
+            }
+        });
+    }
+
+    void testPlayVideo2()
+    {
+        mVideo = (VideoView) findViewById(R.id.videoView);
+        Uri uri = Uri.parse("android.resource://"+getPackageName()+"/"+R.raw.mainmenu);
+        mVideo.setVideoURI(uri);
+        mVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            public void onPrepared(MediaPlayer mp) {
+                int duration = mVideo.getDuration();
+                mVideoAction = new VideoAction();
+                mVideo.postDelayed(mVideoAction, duration);
+                mVideo.requestFocus();
+                mVideo.start();
+
+                // Recuperation d'informations
+                int pos = mVideo.getCurrentPosition();
+                float x = mVideo.getTranslationX();
+                float y = mVideo.getTranslationY();
+                float z = mVideo.getTranslationZ();
+                z = z;
+            }
+        });
+    }
+
+    int time = 5000;
+    class VideoAction implements Runnable {
+        public void run()
+        {
+            mVideo.postDelayed(mVideoAction, mVideo.getDuration());
+            mVideo.start();
+        }
+    }
     
     private void playVideo()
     {
-        VideoView videoview = (VideoView) findViewById(R.id.videoView);
-        String res = "android.resource://"+getPackageName()+"/"+R.raw.mainmenu;
-        Uri uri = Uri.parse("android.resource://"+getPackageName()+"/"+R.raw.mainmenu);
-        videoview.setVideoURI(uri);
-        videoview.start();
+        testPlayVideo2();
     }
 
     @Override
@@ -58,12 +108,10 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
-
         setContentView(R.layout.activity_main);
-
         SharedPreferences prefs = getPreferences(MODE_PRIVATE);
 
-        boolean flush = false;
+        boolean flush = true;
         if(flush) {
             SharedPreferences.Editor editor = prefs.edit();
             editor.remove("registred");
@@ -72,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
 
         String registred = prefs.getString("registred", "false");
         mCredentialsValidated = (registred.equals("true"));
+        mCredentialsValidated = true;
         if(!mCredentialsValidated) {
             final AlertDialog.Builder dlgAlert = new AlertDialog.Builder(this);
             dlgAlert.setView(R.layout.dialog_security_code);
@@ -131,28 +180,36 @@ public class MainActivity extends AppCompatActivity {
             dlgAlert.create().show();
        }
 
-        mApprendreAphabet = (Button)findViewById(R.id.activity_main_alphabet_txt);
-
-        mApprendreAphabet.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //
-                if(mCredentialsValidated) {
-                    Intent apprendreAlphabet = new Intent(MainActivity.this, ApprendreAlphabetActivity.class);
-                    startActivity(apprendreAlphabet);
-                }
-                else {
-                    Intent starterIntent = new Intent(MainActivity.this, MainActivity.class);
-                    startActivity(starterIntent);
-                    finish();
-                }
-            }
-        });
-
-        playVideo();
-
-
-
-
+       playVideo();
     }
+
+    public void trouverLettre(View v)
+    {
+        OcrCaptureActivity._gameType = OcrCaptureActivity.GameType.eTrouverLettre;
+        Intent ocrCaptureActivity = new Intent(MainActivity.this, OcrCaptureActivity.class);
+        startActivity(ocrCaptureActivity);
+    }
+
+    public void trouverMot(View v)
+    {
+        OcrCaptureActivity._gameType = OcrCaptureActivity.GameType.eLettreComme;
+        Intent ocrCaptureActivity = new Intent(MainActivity.this, OcrCaptureActivity.class);
+        startActivity(ocrCaptureActivity);
+    }
+
+    public void trouver1ereLettre(View v)
+    {
+        OcrCaptureActivity._gameType = OcrCaptureActivity.GameType.eTrouver1ereLettre;
+        Intent ocrCaptureActivity = new Intent(MainActivity.this, OcrCaptureActivity.class);
+        startActivity(ocrCaptureActivity);
+    }
+
+    public void exit(View v)
+    {
+        android.os.Process.killProcess(android.os.Process.myPid());
+        System.exit(1);
+    }
+
+
+
 }
