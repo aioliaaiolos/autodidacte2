@@ -28,6 +28,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
@@ -71,14 +72,14 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
     // Permission request codes need to be < 256
     private static final int RC_HANDLE_CAMERA_PERM = 2;
-
+    private CameraSourcePreview preview;
     // Constants used to pass extra data in the intent
     public static final String AutoFocus = "AutoFocus";
     public static final String UseFlash = "UseFlash";
     public static final String TextBlockObject = "String";
 
     private CameraSource cameraSource;
-    private CameraSourcePreview preview;
+
     private GraphicOverlay<OcrGraphic> graphicOverlay;
 
     // Helper objects for detecting taps and pinches.
@@ -133,8 +134,6 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             askNextItem();
         }
 
-
-
         public boolean Execute(Vector<String> strings) {
             if (_flushDetectionBuffer > 0) {
                 _flushDetectionBuffer--;
@@ -149,7 +148,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             ExpectedWord = wordFromLetter(currentItem().charAt(0));
             for (int i = 0; i < strings.size(); i++) {
                 String s = strings.elementAt(i);
-                if (_gameType == GameType.eLettreComme) {
+                if (_gameType == GameType.eTrouverMot) {
                     s = s.toLowerCase();
                     char c = s.charAt(0);
                     String wfl = wordFromLetter(c);
@@ -173,7 +172,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 }
             }
 
-            if (_gameType == GameType.eLettreComme) {
+            if (_gameType == GameType.eTrouverMot) {
                 if (!rightWord.isEmpty()) {
                     onSuccess(rightWord);
                 } else if (!possibleWord.isEmpty()) {
@@ -226,7 +225,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     {
         m_Detector._waitingForDetection = false;
         String sentence = "Tu tes trompé, " + wrongWord + " ne commence pas par, " + currentItem() +
-                          ", le bon mot etait " + ExpectedWord;
+                ", le bon mot etait " + ExpectedWord;
         Intent ocrCaptureActivity = new Intent(OcrCaptureActivity.this, SuccessActivity.class);
         ocrCaptureActivity.putExtra("sentence", sentence);
         ocrCaptureActivity.putExtra("result", "error");
@@ -243,7 +242,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             _onReturnBack = false;
             Sleep(1000);
             m_Detector._waitingForDetection = true;
-            if(_gameType == GameType.eLettreComme)
+            if(_gameType == GameType.eTrouverMot)
                 _flushDetectionBuffer = 3;
             else if(_gameType == GameType.eTrouverLettre)
                 _flushDetectionBuffer = 1;
@@ -268,7 +267,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     {
         eTrouverLettre,
         eTrouver1ereLettre,
-        eLettreComme;
+        eTrouverMot;
     }
 
     public static GameType _gameType;
@@ -348,6 +347,9 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         initNotationLetter(_notationFirstLetter);
         _firstTime = true;
 
+        AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, max * 3 / 2, AudioManager.FLAG_SHOW_UI);
     }
 
     private void initNotationWords()
@@ -481,7 +483,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
     private String currentItem()
     {
-        if(_gameType == GameType.eLettreComme)
+        if(_gameType == GameType.eTrouverMot)
             return  _notationWord.get(_currentLevel).get(_currentWordIndex).substring(0, 1);
         else if(_gameType == GameType.eTrouverLettre)
             return _notationLetter.get(_currentLetterLevel).get(_currentLetterIndex).toString();
@@ -492,7 +494,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
     private String nextItem()
     {
-        if(_gameType == GameType.eLettreComme) {
+        if(_gameType == GameType.eTrouverMot) {
             _currentWordIndex++;
             if (_currentWordIndex >= _notationWord.get(_currentLevel).size()) {
                 do {
@@ -539,7 +541,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         tts.setSpeechRate(0.8f);
         String sentence = "";
 
-        if(_gameType == GameType.eLettreComme) {
+        if(_gameType == GameType.eTrouverMot) {
             if (_firstTime) {
                 sentence = "Bonjour, quel mot commence par la lettre, " + c;
                 _firstTime = false;

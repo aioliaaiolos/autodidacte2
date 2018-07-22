@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    tools:context=".MenuMotActivity">
+
+    <include layout="@layout/video_background" />
+
+    <Button
+        android:translationX="152dp"
+        android:translationY="62dp"
+        android:layout_width="122dp"
+        android:layout_height="159dp"
+        android:id="@+id/trouver_mot"
+        android:background="#AA888888"
+        android:onClick="launchMot"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
+
+</FrameLayout>

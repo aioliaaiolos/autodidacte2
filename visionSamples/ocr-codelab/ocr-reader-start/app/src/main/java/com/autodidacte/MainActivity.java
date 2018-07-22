@@ -30,88 +30,19 @@ import static java.security.spec.MGF1ParameterSpec.SHA1;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button mApprendreAphabet;
+
     boolean mCredentialsValidated = false;
-    VideoView mVideo;
-    Runnable mVideoAction = null;
-    private MediaPlayer.OnSeekCompleteListener mOnSeekCompleteListener = null;
 
-
-    void testPlayVideo()
-    {
-        final VideoView video = (VideoView) findViewById(R.id.videoView);
-        final MediaController controller = new MediaController(this);
-        Uri uri = Uri.parse("android.resource://"+getPackageName()+"/"+R.raw.mainmenu);
-        video.setVideoURI(uri);
-        video.setMediaController(controller);
-        controller.setMediaPlayer(video);
-        video.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            public void onPrepared(MediaPlayer mp) {
-                int duration = video.getDuration();
-                video.requestFocus();
-                video.start();
-                controller.show();
-            }
-        });
-    }
-
-    void testPlayVideo2()
-    {
-        mVideo = (VideoView) findViewById(R.id.videoView);
-        Uri uri = Uri.parse("android.resource://"+getPackageName()+"/"+R.raw.mainmenu);
-        mVideo.setVideoURI(uri);
-        mVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            public void onPrepared(MediaPlayer mp) {
-                int duration = mVideo.getDuration();
-                mVideoAction = new VideoAction();
-                mVideo.postDelayed(mVideoAction, duration);
-                mVideo.requestFocus();
-                mVideo.start();
-
-                // Recuperation d'informations
-                int pos = mVideo.getCurrentPosition();
-                float x = mVideo.getTranslationX();
-                float y = mVideo.getTranslationY();
-                float z = mVideo.getTranslationZ();
-                z = z;
-            }
-        });
-    }
-
-    int time = 5000;
-    class VideoAction implements Runnable {
-        public void run()
-        {
-            mVideo.postDelayed(mVideoAction, mVideo.getDuration());
-            mVideo.start();
-        }
-    }
-    
-    private void playVideo()
-    {
-        testPlayVideo2();
-    }
-
-    @Override
-    protected void onResume()
-    {
-        super.onResume();
-        playVideo();
-
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         setContentView(R.layout.activity_main);
         SharedPreferences prefs = getPreferences(MODE_PRIVATE);
 
-        boolean flush = true;
+        boolean flush = false;
         if(flush) {
             SharedPreferences.Editor editor = prefs.edit();
             editor.remove("registred");
@@ -120,7 +51,6 @@ public class MainActivity extends AppCompatActivity {
 
         String registred = prefs.getString("registred", "false");
         mCredentialsValidated = (registred.equals("true"));
-        mCredentialsValidated = true;
         if(!mCredentialsValidated) {
             final AlertDialog.Builder dlgAlert = new AlertDialog.Builder(this);
             dlgAlert.setView(R.layout.dialog_security_code);
@@ -172,6 +102,8 @@ public class MainActivity extends AppCompatActivity {
                                     SharedPreferences.Editor editor = prefs.edit();
                                     editor.putString("registred", "true");
                                     editor.commit();
+                                    Intent apprendreAlphabet = new Intent(MainActivity.this, AlphabetActivity.class);
+                                    startActivity(apprendreAlphabet);
                                 }
                             }
                         }
@@ -179,36 +111,15 @@ public class MainActivity extends AppCompatActivity {
             dlgAlert.setCancelable(true);
             dlgAlert.create().show();
        }
+       else {
+            Intent apprendreAlphabet = new Intent(MainActivity.this, AlphabetActivity.class);
+            startActivity(apprendreAlphabet);
+        }
 
-       playVideo();
+
     }
 
-    public void trouverLettre(View v)
-    {
-        OcrCaptureActivity._gameType = OcrCaptureActivity.GameType.eTrouverLettre;
-        Intent ocrCaptureActivity = new Intent(MainActivity.this, OcrCaptureActivity.class);
-        startActivity(ocrCaptureActivity);
-    }
 
-    public void trouverMot(View v)
-    {
-        OcrCaptureActivity._gameType = OcrCaptureActivity.GameType.eLettreComme;
-        Intent ocrCaptureActivity = new Intent(MainActivity.this, OcrCaptureActivity.class);
-        startActivity(ocrCaptureActivity);
-    }
-
-    public void trouver1ereLettre(View v)
-    {
-        OcrCaptureActivity._gameType = OcrCaptureActivity.GameType.eTrouver1ereLettre;
-        Intent ocrCaptureActivity = new Intent(MainActivity.this, OcrCaptureActivity.class);
-        startActivity(ocrCaptureActivity);
-    }
-
-    public void exit(View v)
-    {
-        android.os.Process.killProcess(android.os.Process.myPid());
-        System.exit(1);
-    }
 
 
 

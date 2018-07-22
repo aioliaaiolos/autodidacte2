@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    tools:context=".MenuPremiereLettreActivity">
+
+    <include layout="@layout/video_background" />
+
+    <Button
+        android:translationX="115dp"
+        android:translationY="10dp"
+        android:layout_width="200dp"
+        android:layout_height="300dp"
+        android:id="@+id/trouver_premiere_lettre"
+        android:background="#AA888888"
+        android:onClick="launchPremiereLettre"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
+</FrameLayout>

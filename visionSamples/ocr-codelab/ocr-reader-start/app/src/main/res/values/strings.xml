@@ -16,4 +16,22 @@
     <string name="username">"Nom d'utilisateur"</string>
     <string name="password">Mot de passe</string>
     <string name="app_name">Autodidacte</string>
+
+    <string name="title_activity_c">c</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+    <string name="title_activity_alphabet">AlphabetActivity</string>
+
+    <string name="title_activity_menu_mot">MenuMotActivity</string>
+
+    <string name="title_activity_menu_lettre">MenuLettreActivity</string>
+
+    <string name="title_activity_menu_premiere_lettre">MenuPremiereLettreActivity</string>
+
+    <string name="title_activity_menu_options">MenuOptionsActivity</string>
+
+    <string name="title_activity_ocr_capture2">OcrCaptureActivity2</string>
+
+    <string name="title_activity_question">QuestionActivity</string>
 </resources>
