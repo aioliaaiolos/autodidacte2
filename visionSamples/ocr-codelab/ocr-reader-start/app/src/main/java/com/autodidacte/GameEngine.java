@@ -122,6 +122,11 @@ public class GameEngine {
         _detector = detector;
     }
 
+    public static void setOcrCaptureActivity(OcrCaptureActivity activity)
+    {
+        _ocrCaptureActivity = activity;
+    }
+
     public static void launchOcrCapture()
     {
         Intent ocrCaptureActivity = new Intent(_questionActivity, OcrCaptureActivity.class);
@@ -145,7 +150,7 @@ public class GameEngine {
     }
 
 
-    private static void initLetterToWord()
+    public static void initLetterToWord()
     {
         _letterToWord.put('a', "avion");
         _letterToWord.put('b', "banane");
@@ -273,6 +278,13 @@ public class GameEngine {
             letters.get(nLevel).add(letter);
         }
     }
+
+
+    boolean isIntoWordList(String word)
+    {
+        return _letterToWord.contains(word);
+    }
+
 
     public static String wordFromLetter(char c)
     {
@@ -412,6 +424,22 @@ public class GameEngine {
             if(_detector != null)
                 _detector._waitingForDetection = true;
         }
+    }
+
+    public static void onLetterSuccess(char c)
+    {
+        String sentence = "Bravo, tu as trouvé la bonne lettre ! ";
+
+        Intent ocrCaptureActivity = new Intent(_ocrCaptureActivity, SuccessActivity.class);
+        ocrCaptureActivity.putExtra("sentence", sentence);
+        ocrCaptureActivity.putExtra("result", "success");
+        _ocrCaptureActivity.startActivityForResult(ocrCaptureActivity, SUCCESS_ACTIVITY);
+    }
+
+
+    public static void speak(String s)
+    {
+        tts.speak(s, TextToSpeech.QUEUE_ADD, null, "DEFAULT");
     }
 
 
