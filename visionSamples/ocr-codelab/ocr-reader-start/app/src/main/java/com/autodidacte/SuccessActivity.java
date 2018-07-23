@@ -49,7 +49,7 @@ public class SuccessActivity extends AppCompatActivity {
         tts = new TextToSpeech(this.getApplicationContext(), listener);
         tts.setLanguage(Locale.FRANCE);
 
-        OcrCaptureActivity.Sleep(1000);
+        Utils.Sleep(1000);
 
 
         ///

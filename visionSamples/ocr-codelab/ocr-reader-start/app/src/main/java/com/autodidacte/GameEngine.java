@@ -124,7 +124,7 @@ public class GameEngine {
 
     public static void launchOcrCapture()
     {
-        Intent ocrCaptureActivity = new Intent(_questionActivity, OcrCaptureActivity2.class);
+        Intent ocrCaptureActivity = new Intent(_questionActivity, OcrCaptureActivity.class);
         _questionActivity.startActivity(ocrCaptureActivity);
     }
 

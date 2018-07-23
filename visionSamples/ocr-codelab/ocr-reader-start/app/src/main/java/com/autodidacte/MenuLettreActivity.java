@@ -151,7 +151,7 @@ public class MenuLettreActivity extends Activity {
 
     private void launchLettre(View view)
     {
-        OcrCaptureActivity._gameType = OcrCaptureActivity.GameType.eTrouverMot;
+        GameEngine.setGameType(GameEngine.GameType.eTrouverMot);
         Intent ocrCaptureActivity = new Intent(MenuLettreActivity.this, OcrCaptureActivity.class);
         startActivity(ocrCaptureActivity);
 

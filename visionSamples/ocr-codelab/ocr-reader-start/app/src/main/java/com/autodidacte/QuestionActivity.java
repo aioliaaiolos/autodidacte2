@@ -91,31 +91,33 @@ public class QuestionActivity extends Activity {
         public void execute()
         {
             GameEngine.askNextItem();
-            Utils.Sleep(3000);
+            //Utils.Sleep(3000);
             GameEngine.launchOcrCapture();
 
         }
+    }
+
+    int getVideoFromGameType(GameEngine.GameType type)
+    {
+        int video = 0;
+        if(type == GameEngine.GameType.eTrouverMot)
+            video = R.raw.questionmot;
+        else if(type == GameEngine.GameType.eTrouver1ereLettre)
+            video = R.raw.questionpremierelettre;
+        else if(type == GameEngine.GameType.eTrouverLettre)
+            video = R.raw.questionlettres;
+        return video;
     }
 
     class InitCallbackQuestion implements GameEngine.InitCallback
     {
         public void execute()
         {
-            int video = 0;
-            if(GameEngine.getGameType() == GameEngine.GameType.eTrouverMot)
-                video = R.raw.questionmot;
-            else if(GameEngine.getGameType() == GameEngine.GameType.eTrouver1ereLettre)
-                video = R.raw.questionpremierelettre;
-            else if(GameEngine.getGameType() == GameEngine.GameType.eTrouverLettre)
-                video = R.raw.questionlettres;
-
+            int video = getVideoFromGameType(GameEngine.getGameType());
 
             Utils.setOnVideoReadyCallback(new OnVideoReadyCallback());
             Utils.playVideo(QuestionActivity.this, video);
-            //GameEngine.askNextItem();
-            //Utils.Sleep(3000);
             mVisible = true;
-            //GameEngine.launchOcrCapture();
         }
     }
 
@@ -126,16 +128,8 @@ public class QuestionActivity extends Activity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_question);
 
-        boolean test = false;
-        if(test) {
-            OcrCaptureActivity._gameType = OcrCaptureActivity.GameType.eTrouverMot;
-            Intent ocrCaptureActivity = new Intent(this, OcrCaptureActivity.class);
-            startActivity(ocrCaptureActivity);
-        }
-        else {
-            GameEngine.setInitCallback(new InitCallbackQuestion());
-            GameEngine.init(this);
-        }
+        GameEngine.setInitCallback(new InitCallbackQuestion());
+        GameEngine.init(this);
     }
 
     @Override

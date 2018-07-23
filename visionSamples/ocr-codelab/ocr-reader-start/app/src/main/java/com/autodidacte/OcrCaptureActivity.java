@@ -116,22 +116,11 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     static Hashtable<String, Character> _WordToLetter;
 
 
-    static public void Sleep(int milliseconds)
-    {
-        try {
-            Thread.sleep(milliseconds);
-        }
-        catch(Exception e)
-        {
-        }
-    }
-
     private class DetectionCallback implements OcrDetectorProcessor.ITextDetectCallback
     {
         public void ExecuteFirstTime()
         {
-            Sleep(1000);
-            askNextItem();
+
         }
 
         public boolean Execute(Vector<String> strings) {
@@ -145,10 +134,10 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             String possibleWord = "";
             String ExpectedWord = "";
             boolean trouve = false;
-            ExpectedWord = wordFromLetter(currentItem().charAt(0));
+            ExpectedWord = wordFromLetter(GameEngine.currentItem().charAt(0));
             for (int i = 0; i < strings.size(); i++) {
                 String s = strings.elementAt(i);
-                if (_gameType == GameType.eTrouverMot) {
+                if (GameEngine.getGameType() == GameEngine.GameType.eTrouverMot) {
                     s = s.toLowerCase();
                     char c = s.charAt(0);
                     String wfl = wordFromLetter(c);
@@ -160,7 +149,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                         break;
                     }
                 }
-                else if(_gameType == GameType.eTrouverLettre) {
+                else if(GameEngine.getGameType() == GameEngine.GameType.eTrouverLettre) {
                     if(s.length() == 1) {
                         String sCurrent = String.valueOf(currentItem());
                         if (s.equals(sCurrent)) {
@@ -172,18 +161,18 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 }
             }
 
-            if (_gameType == GameType.eTrouverMot) {
+            if (GameEngine.getGameType() == GameEngine.GameType.eTrouverMot) {
                 if (!rightWord.isEmpty()) {
-                    onSuccess(rightWord);
+                    GameEngine.onSuccess(rightWord);
+                    finish();
                 } else if (!possibleWord.isEmpty()) {
-                    onFail(possibleWord, ExpectedWord);
+                    GameEngine.onFail(possibleWord, ExpectedWord);
                 }
             }
-            else if(_gameType == GameType.eTrouverLettre) {
+            else if(GameEngine.getGameType() == GameEngine.GameType.eTrouverLettre) {
                 if(trouve)
                     onLetterSuccess(currentItem().charAt(0));
             }
-
             return true;
         }
     }
@@ -198,7 +187,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         startActivityForResult(ocrCaptureActivity, SUCCESS_ACTIVITY);
 
     }
-
+/*
     void onSuccess(String wordFound)
     {
         boolean version1 = false;
@@ -240,14 +229,14 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             _onReturnBack = true;
             askNextItem();
             _onReturnBack = false;
-            Sleep(1000);
+            Utils.Sleep(1000);
             m_Detector._waitingForDetection = true;
-            if(_gameType == GameType.eTrouverMot)
+            if(GameEngine.getGameType() == GameEngine.GameType.eTrouverMot)
                 _flushDetectionBuffer = 3;
-            else if(_gameType == GameType.eTrouverLettre)
+            else if(GameEngine.getGameType() == GameEngine.GameType.eTrouverLettre)
                 _flushDetectionBuffer = 1;
         }
-    }
+    }*/
 
     boolean isIntoWordList(String word)
     {
@@ -262,15 +251,15 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             return _letterToWord.get(c);
         return "";
     }
-
+/*
     public enum GameType
     {
         eTrouverLettre,
         eTrouver1ereLettre,
         eTrouverMot;
-    }
+    }*/
 
-    public static GameType _gameType;
+    //public static GameType _gameType;
 
     /**
      * Initializes the UI and creates the detector pipeline.
@@ -319,7 +308,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         Snackbar.make(graphicOverlay, "Tap to Speak. Pinch/Stretch to zoom",
                 Snackbar.LENGTH_LONG)
                 .show();
-
+/*
         // TODO: Set up the Text To Speech engine.
         TextToSpeech.OnInitListener listener =
                 new TextToSpeech.OnInitListener() {
@@ -333,7 +322,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                         }
                     }
                 };
-        tts = new TextToSpeech(this.getApplicationContext(), listener);
+        tts = new TextToSpeech(this.getApplicationContext(), listener);*/
 
         if(_letterToWord == null)
             _letterToWord = new Hashtable<Character, String>();
@@ -350,6 +339,8 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, max * 3 / 2, AudioManager.FLAG_SHOW_UI);
+
+        m_Detector._waitingForDetection = true;
     }
 
     private void initNotationWords()
@@ -483,18 +474,18 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
     private String currentItem()
     {
-        if(_gameType == GameType.eTrouverMot)
+        if(GameEngine.getGameType() == GameEngine.GameType.eTrouverMot)
             return  _notationWord.get(_currentLevel).get(_currentWordIndex).substring(0, 1);
-        else if(_gameType == GameType.eTrouverLettre)
+        else if(GameEngine.getGameType() == GameEngine.GameType.eTrouverLettre)
             return _notationLetter.get(_currentLetterLevel).get(_currentLetterIndex).toString();
-        else if(_gameType == GameType.eTrouver1ereLettre)
+        else if(GameEngine.getGameType() == GameEngine.GameType.eTrouver1ereLettre)
             return _notationFirstLetter.get(_currentFirstLetterLevel).get(_currentFirstLetterIndex).toString();
         return "";
     }
 
     private String nextItem()
     {
-        if(_gameType == GameType.eTrouverMot) {
+        if(GameEngine.getGameType() == GameEngine.GameType.eTrouverMot) {
             _currentWordIndex++;
             if (_currentWordIndex >= _notationWord.get(_currentLevel).size()) {
                 do {
@@ -504,7 +495,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 _currentWordIndex = 0;
             }
         }
-        else if(_gameType == GameType.eTrouverLettre) {
+        else if(GameEngine.getGameType() == GameEngine.GameType.eTrouverLettre) {
             _currentLetterIndex++;
             if (_currentLetterIndex >= _notationLetter.get(_currentLetterLevel).size()) {
                 do {
@@ -514,7 +505,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 _currentLetterIndex = 0;
             }
         }
-        else if(_gameType == GameType.eTrouver1ereLettre) {
+        else if(GameEngine.getGameType() == GameEngine.GameType.eTrouver1ereLettre) {
             _currentFirstLetterIndex++;
             if (_currentFirstLetterIndex >= _notationFirstLetter.get(_currentFirstLetterLevel).size()) {
                 do {
@@ -527,6 +518,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         return currentItem();
     }
 
+    /*
     public void askNextItem()
     {
         tts.setLanguage(Locale.FRANCE);
@@ -541,7 +533,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         tts.setSpeechRate(0.8f);
         String sentence = "";
 
-        if(_gameType == GameType.eTrouverMot) {
+        if(GameEngine.getGameType() == GameEngine.GameType.eTrouverMot) {
             if (_firstTime) {
                 sentence = "Bonjour, quel mot commence par la lettre, " + c;
                 _firstTime = false;
@@ -552,7 +544,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             if(c == "y" || c == "Y")
                 sentence += " grec ";
         }
-        else if(_gameType == GameType.eTrouverLettre){
+        else if(GameEngine.getGameType() == GameEngine.GameType.eTrouverLettre){
             if (_firstTime) {
                 sentence = "Bonjour, trouve moi la lettre, " + c;
                 if(c == "y" || c == "Y")
@@ -567,7 +559,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             else
                 sentence = "Lettre suivante, trouve moi la lettre, " + c + " ?";
         }
-        else if(_gameType == GameType.eTrouver1ereLettre){
+        else if(GameEngine.getGameType() == GameEngine.GameType.eTrouver1ereLettre){
             if (_firstTime) {
                 sentence = "Bonjour, par quelle lettre commence le mot " + c;
                 if(c == "y" || c == "Y")
@@ -585,11 +577,11 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
         tts.speak(sentence, TextToSpeech.QUEUE_ADD, null, "DEFAULT");
         if (!_onTap && !_onReturnBack) {
-            Sleep(4000);
+            Utils.Sleep(4000);
             m_Detector._waitingForDetection = true;
         }
     }
-
+*/
     boolean isLow(char c)
     {
         return c >= 'a';
@@ -656,6 +648,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         DetectionCallback onWordDetected = new DetectionCallback();
         m_Detector.setDetectionCallback(onWordDetected);
         textRecognizer.setProcessor(m_Detector);
+        GameEngine.setOcrDetector(m_Detector);
 
 
         // Check if the TextRecognizer is operational.
@@ -820,7 +813,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             Log.d(TAG,"no text detected");
         }
         _onTap = true;
-        askNextItem();
+        GameEngine.askNextItem();
         _onTap = false;
         return text != null;
     }

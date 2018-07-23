@@ -159,12 +159,13 @@ public class MenuMotActivity extends Activity {
 
     public void launchMot(View view)
     {
+        /*
         OcrCaptureActivity._gameType = OcrCaptureActivity.GameType.eTrouverMot;
         Intent ocrCaptureActivity = new Intent(MenuMotActivity.this, OcrCaptureActivity.class);
-        startActivity(ocrCaptureActivity);
+        startActivity(ocrCaptureActivity);*/
 
-        //GameEngine.setGameType(GameEngine.GameType.eTrouverMot);
-        //Intent questionActivity = new Intent(MenuMotActivity.this, QuestionActivity.class);
-        //startActivity(questionActivity);
+        GameEngine.setGameType(GameEngine.GameType.eTrouverMot);
+        Intent questionActivity = new Intent(MenuMotActivity.this, QuestionActivity.class);
+        startActivity(questionActivity);
     }
 }
