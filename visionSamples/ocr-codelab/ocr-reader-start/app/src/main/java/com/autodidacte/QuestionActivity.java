@@ -3,7 +3,6 @@ package com.autodidacte;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
@@ -33,7 +32,7 @@ public class QuestionActivity extends Activity {
      */
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
-    //private View mContentView;
+    private View mContentView;
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
         @Override
@@ -43,16 +42,15 @@ public class QuestionActivity extends Activity {
             // Note that some of these constants are new as of API 16 (Jelly Bean)
             // and API 19 (KitKat). It is safe to use them, as they are inlined
             // at compile-time and do nothing on earlier devices.
-            /*
             mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
                     | View.SYSTEM_UI_FLAG_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                     | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);*/
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         }
     };
-    //private View mControlsView;
+    private View mControlsView;
     private final Runnable mShowPart2Runnable = new Runnable() {
         @Override
         public void run() {
@@ -61,7 +59,7 @@ public class QuestionActivity extends Activity {
             if (actionBar != null) {
                 actionBar.show();
             }
-            //mControlsView.setVisibility(View.VISIBLE);
+            mControlsView.setVisibility(View.VISIBLE);
         }
     };
     private boolean mVisible;
@@ -86,51 +84,75 @@ public class QuestionActivity extends Activity {
         }
     };
 
-    class OnVideoReadyCallback implements Utils.IOnVideoReadyCallback
-    {
-        public void execute()
-        {
-            GameEngine.askNextItem();
-            //Utils.Sleep(3000);
-            GameEngine.launchOcrCapture();
-
-        }
-    }
-
-    int getVideoFromGameType(GameEngine.GameType type)
-    {
-        int video = 0;
-        if(type == GameEngine.GameType.eTrouverMot)
-            video = R.raw.questionmot;
-        else if(type == GameEngine.GameType.eTrouver1ereLettre)
-            video = R.raw.questionpremierelettre;
-        else if(type == GameEngine.GameType.eTrouverLettre)
-            video = R.raw.questionlettres;
-        return video;
-    }
+    GameEngine.OnVideoReadyCallback _onVideoReadyCallback = null;
 
     class InitCallbackQuestion implements GameEngine.InitCallback
     {
         public void execute()
         {
-            int video = getVideoFromGameType(GameEngine.getGameType());
+            int video = GameEngine.getVideoFromGameType(GameEngine.getGameType());
 
-            Utils.setOnVideoReadyCallback(new OnVideoReadyCallback());
+            if(_onVideoReadyCallback == null)
+                _onVideoReadyCallback = new GameEngine.OnVideoReadyCallback();
+
+            Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
+            //if(Utils.currentVideoId() != video)
+            Utils.stopVideo();
             Utils.playVideo(QuestionActivity.this, video);
             mVisible = true;
         }
     }
+
+    InitCallbackQuestion _initCallbackQuestion = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        setContentView(R.layout.activity_question);
+        setContentView(R.layout.activity_test_fullscreen);
 
-        GameEngine.setInitCallback(new InitCallbackQuestion());
+        if(_initCallbackQuestion == null)
+            _initCallbackQuestion = new InitCallbackQuestion();
+        GameEngine.setInitCallback(_initCallbackQuestion);
+
         GameEngine.init(this);
+
+        mVisible = true;
+        mControlsView = findViewById(R.id.fullscreen_content_controls);
+        mContentView = findViewById(R.id.fullscreen_content);
+
+
+        // Set up the user interaction to manually show or hide the system UI.
+        mContentView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                toggle();
+            }
+        });
+
+        // Upon interacting with UI controls, delay any scheduled hide()
+        // operations to prevent the jarring behavior of controls going away
+        // while interacting with the UI.
+        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(GameEngine.returnToAlphabetActvity)
+        {
+            Utils.setOnVideoReadyCallback(null);
+            Utils.stopVideo();
+            finish();
+        }
+        else {
+            if(_initCallbackQuestion == null)
+                _initCallbackQuestion = new InitCallbackQuestion();
+            _initCallbackQuestion.execute();
+        }
+    }
+
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -156,7 +178,7 @@ public class QuestionActivity extends Activity {
         if (actionBar != null) {
             actionBar.hide();
         }
-        //mControlsView.setVisibility(View.GONE);
+        mControlsView.setVisibility(View.GONE);
         mVisible = false;
 
         // Schedule a runnable to remove the status and navigation bar after a delay
@@ -167,8 +189,8 @@ public class QuestionActivity extends Activity {
     @SuppressLint("InlinedApi")
     private void show() {
         // Show the system bar
-        /*mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);*/
+        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
         mVisible = true;
 
         // Schedule a runnable to display UI elements after a delay

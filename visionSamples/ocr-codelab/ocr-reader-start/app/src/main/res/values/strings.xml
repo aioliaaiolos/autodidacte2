@@ -34,4 +34,14 @@
     <string name="title_activity_ocr_capture2">OcrCaptureActivity2</string>
 
     <string name="title_activity_question">QuestionActivity</string>
+
+    <string name="title_activity_question_lettre">QuestionLettreActivity</string>
+
+    <string name="title_activity_question_premiere_lettre">QuestionPremiereLettreActivity</string>
+
+    <string name="title_activity_question_lettre2">QuestionLettreActivity2</string>
+
+    <string name="title_activity_test_fullscreen">TestFullscreenActivity</string>
+
+    <string name="title_activity_menu">MenuActivity</string>
 </resources>

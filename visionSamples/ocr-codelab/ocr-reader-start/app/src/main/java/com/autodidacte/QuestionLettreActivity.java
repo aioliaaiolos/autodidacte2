@@ -3,20 +3,17 @@ package com.autodidacte;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
-import android.widget.VideoView;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class MenuPremiereLettreActivity extends Activity {
+public class QuestionLettreActivity extends Activity {
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -35,12 +32,22 @@ public class MenuPremiereLettreActivity extends Activity {
      */
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
+    private View mContentView;
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
         @Override
         public void run() {
             // Delayed removal of status and navigation bar
 
+            // Note that some of these constants are new as of API 16 (Jelly Bean)
+            // and API 19 (KitKat). It is safe to use them, as they are inlined
+            // at compile-time and do nothing on earlier devices.
+            mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         }
     };
     //private View mControlsView;
@@ -77,61 +84,51 @@ public class MenuPremiereLettreActivity extends Activity {
         }
     };
 
+    GameEngine.OnVideoReadyCallback _onVideoReadyCallback = null;
 
-    Button _trouverPremiereLettre = null;
-
-    class OnVideoReadyCallback implements Utils.IOnVideoReadyCallback
+    class InitCallbackQuestion implements GameEngine.InitCallback
     {
-        public void execute(VideoView video)
+        public void execute()
         {
-            _trouverPremiereLettre = (Button)findViewById(R.id.trouverPremiereLettre);
+            int video = GameEngine.getVideoFromGameType(GameEngine.getGameType());
 
-            Button arr[] = {_trouverPremiereLettre};
+            if(_onVideoReadyCallback == null)
+                _onVideoReadyCallback = new GameEngine.OnVideoReadyCallback();
 
-            int color = 0xAA888888;
-            for(int i = 0; i < arr.length; i++)
-            {
-                Button b = arr[i];
-                b.setBackgroundColor(color);
-            }
-
-            int w = video.getWidth();
-            int h = video.getHeight();
-
-            GameEngine.configureGeneralButtons(MenuPremiereLettreActivity.this, w, h, R.id.retour, R.id.options, R.id.aide);
-
-            int precision = 10000;
-
-            int xLettre = 2500;
-            int yLettre = 1000;
-            int wLettre = 1500;
-            int hLettre = 1000;
-
-
-
-            _trouverPremiereLettre.setX(w * xLettre / precision);
-            _trouverPremiereLettre.setY(h * yLettre / precision);
-            _trouverPremiereLettre.setWidth(w * wLettre / precision);
-            _trouverPremiereLettre.setHeight(h * hLettre / precision);
-
-
-
+            Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
+            /*if(Utils.currentVideoId() != video)
+                Utils.playVideo(QuestionLettreActivity.this, video);*/
+            mVisible = true;
         }
     }
 
+    InitCallbackQuestion _initCallbackQuestion = null;
 
-    OnVideoReadyCallback _onVideoReadyCallback = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        setContentView(R.layout.activity_menu_premiere_lettre);
+        //setContentView(R.layout.activity_question_lettre);
+/*
+        if(_initCallbackQuestion == null)
+            _initCallbackQuestion = new InitCallbackQuestion();
+        GameEngine.setInitCallback(_initCallbackQuestion);
 
-        if(_onVideoReadyCallback == null)
-            _onVideoReadyCallback = new OnVideoReadyCallback();
+        GameEngine.init(this);*/
+    }
 
-        Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
-        Utils.playVideo(this, R.raw.lettremenu);
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        if(GameEngine.returnToAlphabetActvity)
+            finish();
+        else {
+            Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
+            Utils.stopVideo();
+            Utils.playVideo(this, R.raw.lettremenu);
+        }
     }
 
     @Override
@@ -142,12 +139,6 @@ public class MenuPremiereLettreActivity extends Activity {
         // created, to briefly hint to the user that UI controls
         // are available.
         delayedHide(100);
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        Utils.setOnVideoReadyCallback(null);
     }
 
     private void toggle() {
@@ -175,6 +166,8 @@ public class MenuPremiereLettreActivity extends Activity {
     @SuppressLint("InlinedApi")
     private void show() {
         // Show the system bar
+        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
         mVisible = true;
 
         // Schedule a runnable to display UI elements after a delay
@@ -189,30 +182,5 @@ public class MenuPremiereLettreActivity extends Activity {
     private void delayedHide(int delayMillis) {
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
-    }
-
-    public void premiereLettre(View view)
-    {
-        GameEngine.setGameType(GameEngine.GameType.eTrouverPremiereLettre);
-        Intent ocrCaptureActivity = new Intent(MenuPremiereLettreActivity.this, QuestionActivity.class);
-        startActivity(ocrCaptureActivity);
-    }
-
-
-
-    public void retour(View view)
-    {
-        GameEngine.retour(this, view);
-
-    }
-
-    public void options(View view)
-    {
-        GameEngine.options(this, view);
-    }
-
-    public void aide(View view)
-    {
-        GameEngine.aide(this, view);
     }
 }

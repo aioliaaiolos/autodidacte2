@@ -8,6 +8,9 @@ import android.media.AudioManager;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.VideoView;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -18,10 +21,17 @@ import static android.content.Context.MODE_PRIVATE;
 
 public class GameEngine {
 
+    public static int LETTRE_ACTIVITY = 1;
+    public static int MOT_ACTIVITY = 2;
+    public static int PREMIERE_LETTRE_ACTIVITY = 3;
+    public static int QUESTION_ACTIVITY = 4;
+    public static int SUCCESS_ACTIVITY = 5;
+    public static int CAPTURE_ACTIVITY = 6;
+
     public enum GameType
     {
         eTrouverLettre,
-        eTrouver1ereLettre,
+        eTrouverPremiereLettre,
         eTrouverMot;
     }
 
@@ -46,13 +56,13 @@ public class GameEngine {
     static boolean _onReturnBack = false;
     private static boolean _onTap = false;
     static int MAX_LEVEL = 3;
-    static int SUCCESS_ACTIVITY = 1;
     static Hashtable<Character, String> _letterToWord;
     static Hashtable<String, Character> _WordToLetter;
     static Activity _ocrCaptureActivity = null;
     static Activity _questionActivity = null;
     static boolean _init = false;
     static InitCallback _initCallback;
+    static public boolean returnToAlphabetActvity = false;
 
 
 
@@ -97,13 +107,14 @@ public class GameEngine {
             }
 
             initNotationWords();
-            initNotationLetter(_notationLetter);
-            initNotationLetter(_notationFirstLetter);
+            _notationLetter = initNotationLetter();
+            _notationFirstLetter = initNotationLetter();
             _firstTime = true;
 
             AudioManager audioManager = (AudioManager) _questionActivity.getSystemService(Context.AUDIO_SERVICE);
             int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, max * 3 / 2, AudioManager.FLAG_SHOW_UI);
+            _init = true;
         }
     }
 
@@ -130,7 +141,8 @@ public class GameEngine {
     public static void launchOcrCapture()
     {
         Intent ocrCaptureActivity = new Intent(_questionActivity, OcrCaptureActivity.class);
-        _questionActivity.startActivity(ocrCaptureActivity);
+        //_questionActivity.startActivity(ocrCaptureActivity);
+        _questionActivity.startActivityForResult(ocrCaptureActivity, CAPTURE_ACTIVITY);
     }
 
     public static void setGameType(GameType type)
@@ -241,9 +253,9 @@ public class GameEngine {
         }
     }
 
-    private static void initNotationLetter(Hashtable<Integer, ArrayList<Character>> letters)
+    private static Hashtable<Integer, ArrayList<Character>> initNotationLetter()
     {
-        letters = new Hashtable<Integer, ArrayList<Character>>();
+        Hashtable<Integer, ArrayList<Character>> letters = new Hashtable<Integer, ArrayList<Character>>();
         SharedPreferences preferences = _questionActivity.getPreferences(MODE_PRIVATE);
         String init = preferences.getString("iniLetters", null);
         if(init == null){
@@ -262,6 +274,7 @@ public class GameEngine {
         }
         initNotationLetterArray('a', letters);
         initNotationLetterArray('A', letters);
+        return letters;
     }
 
 
@@ -309,15 +322,17 @@ public class GameEngine {
         }
         else if(_gameType == GameType.eTrouverLettre) {
             _currentLetterIndex++;
-            if (_currentLetterIndex >= _notationLetter.get(_currentLetterLevel).size()) {
-                do {
-                    _currentLetterLevel++;
+            if(_notationLetter != null) {
+                if (_currentLetterIndex >= _notationLetter.get(_currentLetterLevel).size()) {
+                    do {
+                        _currentLetterLevel++;
+                    }
+                    while (_notationWord.get(_currentLetterLevel).size() == 0 || _currentLetterLevel < MAX_LEVEL);
+                    _currentLetterIndex = 0;
                 }
-                while (_notationWord.get(_currentLetterLevel).size() == 0 || _currentLetterLevel < MAX_LEVEL);
-                _currentLetterIndex = 0;
             }
         }
-        else if(_gameType == GameType.eTrouver1ereLettre) {
+        else if(_gameType == GameType.eTrouverPremiereLettre) {
             _currentFirstLetterIndex++;
             if (_currentFirstLetterIndex >= _notationFirstLetter.get(_currentFirstLetterLevel).size()) {
                 do {
@@ -336,8 +351,11 @@ public class GameEngine {
             return  _notationWord.get(_currentLevel).get(_currentWordIndex).substring(0, 1);
         else if(_gameType == GameType.eTrouverLettre)
             return _notationLetter.get(_currentLetterLevel).get(_currentLetterIndex).toString();
-        else if(_gameType == GameType.eTrouver1ereLettre)
-            return _notationFirstLetter.get(_currentFirstLetterLevel).get(_currentFirstLetterIndex).toString();
+        else if(_gameType == GameType.eTrouverPremiereLettre) {
+            char c = _notationFirstLetter.get(_currentFirstLetterLevel).get(_currentFirstLetterIndex);
+            String word = _letterToWord.get(c);
+            return word;
+        }
         return "";
     }
 
@@ -382,15 +400,9 @@ public class GameEngine {
             else
                 sentence = "Lettre suivante, trouve moi la lettre, " + c + " ?";
         }
-        else if(_gameType == GameType.eTrouver1ereLettre){
+        else if(_gameType == GameType.eTrouverPremiereLettre){
             if (_firstTime) {
                 sentence = "Bonjour, par quelle lettre commence le mot " + c;
-                if(c == "y" || c == "Y")
-                    sentence += " grec ";
-                if(isLow(c.charAt(0)))
-                    sentence += " minuscule";
-                else
-                    sentence += " majuscule";
                 _firstTime = false;
             } else if (_onTap)
                 sentence = "Trouve moi la lettre, " + c;
@@ -408,8 +420,9 @@ public class GameEngine {
 
             @Override
             public void onDone(String utteranceId) {
-                int test = 0;
-                test = test;
+                if(_detector != null)
+                    _detector._waitingForDetection = true;
+                launchOcrCapture();
             }
 
             @Override
@@ -418,12 +431,12 @@ public class GameEngine {
                 test = test;
             }
         });
-
+/*
         if (!_onTap && !_onReturnBack) {
             Utils.Sleep(4000);
             if(_detector != null)
                 _detector._waitingForDetection = true;
-        }
+        }*/
     }
 
     public static void onLetterSuccess(char c)
@@ -482,4 +495,95 @@ public class GameEngine {
         _questionActivity.startActivityForResult(successActivity, SUCCESS_ACTIVITY);
     }
 
+    public static void retour(Activity parent, View view)
+    {
+        Utils.setOnVideoReadyCallback(null);
+        parent.finish();
+    }
+
+    public static void options(Activity parent, View view)
+    {
+        Intent menuOptions = new Intent(parent, MenuOptionsActivity.class);
+        parent.startActivity(menuOptions);
+    }
+
+    public static void aide(Activity parent, View view)
+    {
+    }
+
+    public static int getVideoFromGameType(GameEngine.GameType type)
+    {
+        int video = 0;
+        if(type == GameEngine.GameType.eTrouverMot)
+            video = R.raw.questionmot;
+        else if(type == GameEngine.GameType.eTrouverPremiereLettre)
+            video = R.raw.questionpremierelettre;
+        else if(type == GameEngine.GameType.eTrouverLettre)
+            video = R.raw.questionlettres;
+        return video;
+    }
+
+    static class OnVideoReadyCallback implements Utils.IOnVideoReadyCallback
+    {
+        public void execute(VideoView video)
+        {
+            video.setOnCompletionListener(null);
+            GameEngine.askNextItem();
+            //Utils.Sleep(3000);
+            //GameEngine.launchOcrCapture();
+        }
+    }
+
+    public static void configureGeneralButtons(Activity activity, int videoWidth, int videoHeight, int retourId, int optionsId, int aideId)
+    {
+        Button retour = (Button)activity.findViewById(retourId);
+        Button options = (Button)activity.findViewById(optionsId);
+        Button aide = (Button)activity.findViewById(aideId);
+
+        Button arr[] = {retour, options, aide};
+
+        int color = 0xAA888888;
+        for(int i = 0; i < arr.length; i++)
+        {
+            Button b = arr[i];
+            b.setBackgroundColor(color);
+        }
+
+        int w = videoWidth;
+        int h = videoHeight;
+
+        int precision = 10000;
+
+        int xRetour = 1750;
+        int yRetour = 250;
+        int wRetour = 750;
+        int hRetour = 300;
+
+        int xOptions = 8150;
+        int yOptions = 180;
+        int wOptions = 600;
+        int hOptions = 270;
+
+        int xAide = 8150;
+        int yAide = 1200;
+        int wAide = 600;
+        int hAide = 270;
+
+        retour.setX(w * xRetour / precision);
+        retour.setY(h * yRetour / precision);
+        retour.setWidth(w * wRetour / precision);
+        retour.setHeight(h * hRetour / precision);
+
+        aide.setX(w * xAide / precision);
+        aide.setY(h * yAide / precision);
+        aide.setWidth(w * wAide / precision);
+        aide.setHeight(h * hAide / precision);
+
+        options.setX(w * xOptions / precision);
+        options.setY(h * yOptions / precision);
+        options.setWidth(w * wOptions / precision);
+        options.setHeight(h * hOptions / precision);
+    }
+
 }
+

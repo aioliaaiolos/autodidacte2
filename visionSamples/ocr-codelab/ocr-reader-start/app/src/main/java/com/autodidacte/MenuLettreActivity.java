@@ -9,6 +9,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
+import android.widget.RelativeLayout;
+import android.widget.VideoView;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -75,27 +78,71 @@ public class MenuLettreActivity extends Activity {
         }
     };
 
+    Button _trouverLettre = null;
+
+    class OnVideoReadyCallback implements Utils.IOnVideoReadyCallback
+    {
+        public void execute(VideoView video)
+        {
+            _trouverLettre = (Button)findViewById(R.id.trouver_lettre);
+            Button arr[] = {_trouverLettre}; //new Button[6];
+
+            int color = 0xAAFF8888;
+            for(int i = 0; i < arr.length; i++)
+            {
+                Button b = arr[i];
+                b.setBackgroundColor(color);
+            }
+
+            int w = video.getWidth();
+            int h = video.getHeight();
+
+            GameEngine.configureGeneralButtons(MenuLettreActivity.this, w, h, R.id.retour, R.id.options, R.id.aide);
+
+            int precision = 10000;
+
+            int xLettre = 1600;
+            int yLettre = 2000;
+            int wLettre = 3700;
+            int hLettre = 4200;
+
+            _trouverLettre.setX(w * xLettre / precision);
+            _trouverLettre.setY(h * yLettre / precision);
+
+            int width = w * wLettre / precision;
+            int height = h * hLettre / precision;
+
+            _trouverLettre.setLayoutParams(new RelativeLayout.LayoutParams(width, height));
+        }
+    }
+
+    OnVideoReadyCallback _onVideoReadyCallback = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_menu_lettre);
-        Utils.playVideo(this, R.raw.lettremenu);
-        mVisible = true;
-        //mControlsView = findViewById(R.id.fullscreen_content_controls);
+        //mVisible = true;
 
-        // Upon interacting with UI controls, delay any scheduled hide()
-        // operations to prevent the jarring behavior of controls going away
-        // while interacting with the UI.
-        //findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
-        //hide();
+        if(_onVideoReadyCallback == null)
+            _onVideoReadyCallback = new OnVideoReadyCallback();
+
+        Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
+        Utils.playVideo(this, R.raw.lettremenu);
     }
 
     @Override
     protected void onResume()
     {
         super.onResume();
-        hide();
+        if(GameEngine.returnToAlphabetActvity)
+            finish();
+        else {
+            Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
+            Utils.stopVideo();
+            Utils.playVideo(this, R.raw.lettremenu);
+        }
     }
 
     @Override
@@ -106,6 +153,12 @@ public class MenuLettreActivity extends Activity {
         // created, to briefly hint to the user that UI controls
         // are available.
         delayedHide(100);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Utils.setOnVideoReadyCallback(null);
     }
 
     private void toggle() {
@@ -149,11 +202,29 @@ public class MenuLettreActivity extends Activity {
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
 
-    private void launchLettre(View view)
+    public void lettre(View view)
     {
-        GameEngine.setGameType(GameEngine.GameType.eTrouverMot);
-        Intent ocrCaptureActivity = new Intent(MenuLettreActivity.this, OcrCaptureActivity.class);
-        startActivity(ocrCaptureActivity);
+        GameEngine.setGameType(GameEngine.GameType.eTrouverLettre);
+        Intent questionLettre = new Intent(MenuLettreActivity.this, QuestionActivity.class);
+        startActivity(questionLettre);
 
     }
+
+    public void retour(View view)
+    {
+        GameEngine.retour(this, view);
+
+    }
+
+    public void options(View view)
+    {
+        GameEngine.options(this, view);
+    }
+
+    public void aide(View view)
+    {
+        GameEngine.aide(this, view);
+    }
+
+
 }

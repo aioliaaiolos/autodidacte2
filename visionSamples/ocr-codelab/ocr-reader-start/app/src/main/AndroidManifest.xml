@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.autodidacte"
     android:installLocation="auto"
-    android:versionCode="3"
-    android:versionName="1.0.2">
+    android:versionCode="4"
+    android:versionName="1.0.3">
 
     <uses-feature android:name="android.hardware.camera" />
 
@@ -61,14 +61,34 @@
             android:label="@string/title_activity_menu_options"
             android:theme="@style/FullscreenTheme" />
         <activity
-            android:name=".OcrCaptureActivity2"
+            android:name=".QuestionMotActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_ocr_capture2"
+            android:label="@string/title_activity_question"
+            android:theme="@style/FullscreenTheme" />
+        <activity
+            android:name=".QuestionLettreActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_question_lettre"
+            android:theme="@style/FullscreenTheme" />
+        <activity
+            android:name=".QuestionPremiereLettreActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_question_premiere_lettre"
+            android:theme="@style/FullscreenTheme" />
+        <activity
+            android:name=".QuestionLettreActivity2"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_question_lettre2"
             android:theme="@style/FullscreenTheme" />
         <activity
             android:name=".QuestionActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_question"
+            android:label="@string/title_activity_test_fullscreen"
+            android:theme="@style/FullscreenTheme" />
+        <activity
+            android:name=".MenuActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_menu"
             android:theme="@style/FullscreenTheme"></activity>
     </application>
 

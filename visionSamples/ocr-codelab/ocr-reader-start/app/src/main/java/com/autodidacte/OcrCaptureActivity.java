@@ -93,13 +93,13 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
 
     private OcrDetectorProcessor m_Detector;
-/*
+
     @Override
     public void onBackPressed()
     {
-        startActivityForResult();
-        finishActivity();
-    }*/
+        super.onBackPressed();
+        GameEngine.returnToAlphabetActvity = true;
+    }
 
     private class DetectionCallback implements OcrDetectorProcessor.ITextDetectCallback
     {
@@ -163,7 +163,6 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     }
 
 
-
     /**
      * Initializes the UI and creates the detector pipeline.
      */
@@ -191,14 +190,17 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         graphicOverlay = (GraphicOverlay<OcrGraphic>) findViewById(R.id.graphicOverlay);
 
         // Set good defaults for capturing text.
-        boolean autoFocus = true;
-        boolean useFlash = true;
+        //boolean autoFocus = true;
+        //boolean useFlash = true;
 
         // Check for the camera permission before accessing the camera.  If the
         // permission is not granted yet, request permission.
+        //checkCameraPermissionAnValidateIfNot(true, true);
+
+
         int rc = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
         if (rc == PackageManager.PERMISSION_GRANTED) {
-            createCameraSource(autoFocus, useFlash);
+            createCameraSource(true, true);
         } else {
             requestCameraPermission();
         }
@@ -216,31 +218,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
         m_Detector._waitingForDetection = true;
     }
-/*
-    private void initNotationWords()
-    {
-        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        String init = preferences.getString("init", null);
-        Iterator<Character> it = _letterToWord.keySet().iterator();
-        if(init == null){
-            SharedPreferences.Editor editor = preferences.edit();
 
-            while(it.hasNext()) {
-                String value = _letterToWord.get(it.next());
-                editor.putString(value, "0");
-            }
-
-            editor.putString("init", "init");
-            editor.apply();
-        }
-
-        it = _letterToWord.keySet().iterator();
-        while(it.hasNext()) {
-            String value = _letterToWord.get(it.next());
-            String level = preferences.getString(value, "");
-            int nLevel = Integer.parseInt(level);
-        }
-    }*/
 
     private void initNotationLetter(Hashtable<Integer, ArrayList<Character>> letters)
     {
@@ -280,67 +258,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             letters.get(nLevel).add(letter);
         }
     }
-/*
-    private void initLetterToWord()
-    {
-        _letterToWord.put('a', "avion");
-        _letterToWord.put('b', "banane");
-        _letterToWord.put('c', "carotte");
-        _letterToWord.put('d', "dinosaure");
-        _letterToWord.put('e', "éléphant");
-        _letterToWord.put('f', "fraise");
-        _letterToWord.put('g', "girafe");
-        _letterToWord.put('h', "hérisson");
-        _letterToWord.put('i', "igloo");
-        _letterToWord.put('j', "jus");
-        _letterToWord.put('k', "kangourou");
-        _letterToWord.put('l', "lion");
-        _letterToWord.put('m', "mangue");
-        _letterToWord.put('n', "nuage");
-        _letterToWord.put('o', "orange");
-        _letterToWord.put('p', "pomme");
-        _letterToWord.put('q', "quatre");
-        _letterToWord.put('r', "robot");
-        _letterToWord.put('s', "soleil");
-        _letterToWord.put('t', "tigre");
-        _letterToWord.put('u', "ustensiles");
-        _letterToWord.put('v', "voiture");
-        _letterToWord.put('w', "wagon");
-        _letterToWord.put('x', "xylophone");
-        _letterToWord.put('y', "yaourt");
-        _letterToWord.put('z', "zèbre");
-    }
 
-    private void initWordToLetter()
-    {
-        _WordToLetter.put("avion", 'a');
-        _WordToLetter.put("banane", 'b');
-        _WordToLetter.put("carotte", 'c');
-        _WordToLetter.put("dinosaure", 'd');
-        _WordToLetter.put("éléphant", 'e');
-        _WordToLetter.put("fraise", 'f');
-        _WordToLetter.put("girafe", 'g');
-        _WordToLetter.put("hérisson", 'h');
-        _WordToLetter.put("igloo", 'i');
-        _WordToLetter.put("jus", 'j');
-        _WordToLetter.put("kangourou", 'k');
-        _WordToLetter.put("lion", 'l');
-        _WordToLetter.put("mangue", 'm');
-        _WordToLetter.put("nuage", 'n');
-        _WordToLetter.put("orange", 'o');
-        _WordToLetter.put("pomme", 'p');
-        _WordToLetter.put("quatre", 'q');
-        _WordToLetter.put("robot", 'r');
-        _WordToLetter.put("soleil", 's');
-        _WordToLetter.put("tigre", 't');
-        _WordToLetter.put("ustensiles", 'u');
-        _WordToLetter.put("voiture", 'v');
-        _WordToLetter.put("wagon", 'w');
-        _WordToLetter.put("xylophone", 'x');
-        _WordToLetter.put("yaourt", 'y');
-        _WordToLetter.put("zèbre", 'z');
-    }
-*/
     boolean isLow(char c)
     {
         return c >= 'a';
@@ -377,6 +295,18 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 .setAction(R.string.ok, listener)
                 .show();
     }
+/*
+    public static void checkCameraPermissionAnValidateIfNot(Activity activity, boolean autoFocus, boolean useFlash)
+    {
+        // Check for the camera permission before accessing the camera.  If the
+        // permission is not granted yet, request permission.
+        int rc = ActivityCompat.checkSelfPermission(activity, Manifest.permission.CAMERA);
+        if (rc == PackageManager.PERMISSION_GRANTED) {
+            createCameraSource(autoFocus, useFlash);
+        } else {
+            activity.requestCameraPermission();
+        }
+    }*/
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {

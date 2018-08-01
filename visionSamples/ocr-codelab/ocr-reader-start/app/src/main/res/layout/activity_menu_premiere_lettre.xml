@@ -9,13 +9,46 @@
     <include layout="@layout/video_background" />
 
     <Button
+        android:translationX="120dp"
+        android:translationY="10dp"
+        android:layout_width="65dp"
+        android:layout_height="37dp"
+        android:id="@+id/retour"
+        android:background="#AA888888"
+        android:onClick="retour"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
+    <Button
+        android:translationX="517dp"
+        android:translationY="8dp"
+        android:layout_width="65dp"
+        android:layout_height="32dp"
+        android:id="@+id/options"
+        android:background="#00888888"
+        android:onClick="options"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
+    <Button
+        android:translationX="517dp"
+        android:translationY="43dp"
+        android:layout_width="65dp"
+        android:layout_height="32dp"
+        android:id="@+id/aide"
+        android:background="#00888888"
+        android:onClick="aide"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
+    <Button
         android:translationX="115dp"
         android:translationY="10dp"
         android:layout_width="200dp"
         android:layout_height="300dp"
-        android:id="@+id/trouver_premiere_lettre"
-        android:background="#AA888888"
-        android:onClick="launchPremiereLettre"
+        android:id="@+id/trouverPremiereLettre"
+        android:background="#00888888"
+        android:onClick="premiereLettre"
         android:layout_alignLeft="@+id/videoView"
         android:layout_alignBottom="@+id/videoView"/>
 

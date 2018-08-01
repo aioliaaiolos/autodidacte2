@@ -3,6 +3,9 @@ package com.autodidacte;
 import android.app.Activity;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.SystemClock;
+import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
 
@@ -11,14 +14,16 @@ public class Utils {
 
     public interface IOnVideoReadyCallback
     {
-        public void execute();
+        public void execute(VideoView video);
     }
 
 
     static VideoView mVideo;
-    static Runnable mVideoAction = null;
     static int durat = 0;
     static IOnVideoReadyCallback _videoReadyCallback = null;
+    static MediaPlayer.OnPreparedListener _onPreparedListener = null;
+    static OnCompletionListener _onCompletionListener;
+    static int _currentVideoId = -1;
 
 
     static void setOnVideoReadyCallback(IOnVideoReadyCallback callback)
@@ -26,49 +31,63 @@ public class Utils {
         _videoReadyCallback = callback;
     }
 
-
-    static class VideoAction implements Runnable {
-        public void run()
+    static class OnCompletionListener implements MediaPlayer.OnCompletionListener
+    {
+        @Override
+        public void onCompletion(MediaPlayer mp)
         {
-            mVideo.postDelayed(mVideoAction, mVideo.getDuration());
-            mVideo.start();
-            mVideo.seekTo(2000);
+            mp.start();
         }
     }
 
 
     public static int playVideo(Activity activity, int videoId) {
+        _currentVideoId = videoId;
         mVideo = (VideoView) activity.findViewById(R.id.videoView);
         if (mVideo != null) {
             Uri uri = Uri.parse("android.resource://" + activity.getPackageName() + "/" + videoId);
             mVideo.setVideoURI(uri);
-            mVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                public void onPrepared(MediaPlayer mp) {
-                    int duration = mVideo.getDuration();
-                    durat = duration;
-                    mVideoAction = new VideoAction();
-                    mVideo.postDelayed(mVideoAction, duration);
-                    mVideo.requestFocus();
-                    mVideo.start();
-                    if(_videoReadyCallback != null)
-                        _videoReadyCallback.execute();
+            if(_onPreparedListener == null)
+                _onPreparedListener = new MediaPlayer.OnPreparedListener() {
+                    public void onPrepared(MediaPlayer mp) {
+                        int duration = mVideo.getDuration();
+                        int w = mVideo.getWidth();
+                        int h = mVideo.getHeight();
 
-                    // Recuperation d'informations
-                    int pos = mVideo.getCurrentPosition();
-                    float x = mVideo.getTranslationX();
-                    float y = mVideo.getTranslationY();
-                    float z = mVideo.getTranslationZ();
-                    z = z;
-                }
-            });
+                        //mVideo.setLayoutParams(new RelativeLayout.LayoutParams(w, h));
+                        int w2 = mp.getVideoWidth();
+                        int h2 = mp.getVideoHeight();
 
-            //int time = 0;
-            //while(durat == 0 && time < 10000) {
-            //    Sleep(100);
-            //}
+                        durat = duration;
+                        mVideo.requestFocus();
+                        mVideo.start();
+                        if(_videoReadyCallback != null)
+                            _videoReadyCallback.execute(mVideo);
+                    }
+                };
+
+            mVideo.setOnPreparedListener(_onPreparedListener);
+
+            if(_onCompletionListener == null) {
+                _onCompletionListener = new OnCompletionListener();
+            }
+            mVideo.setOnCompletionListener(_onCompletionListener);
+
             return durat;
         }
         return 0;
+    }
+
+    public static int currentVideoId()
+    {
+        return _currentVideoId;
+    }
+
+    public static void stopVideo()
+    {
+        if(mVideo != null) {
+            mVideo.stopPlayback();
+        }
     }
 
     public static void Sleep(int milliseconds)
@@ -80,4 +99,6 @@ public class Utils {
         {
         }
     }
+
+
 }

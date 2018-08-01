@@ -8,24 +8,14 @@
 
     <include layout="@layout/video_background" />
 
-    <Button
-        android:translationX="17dp"
-        android:translationY="10dp"
-        android:layout_width="65dp"
-        android:layout_height="37dp"
-        android:id="@+id/exit"
-        android:background="#AA888888"
-        android:onClick="exit"
-        android:layout_alignLeft="@+id/videoView"
-        android:layout_alignBottom="@+id/videoView"/>
 
     <Button
         android:translationX="255dp"
         android:translationY="24dp"
         android:layout_width="80dp"
         android:layout_height="68dp"
-        android:id="@+id/trouver_lettre"
-        android:background="#AA888888"
+        android:id="@+id/trouverLettre"
+        android:background="#00888888"
         android:onClick="trouverLettre"
         android:layout_alignLeft="@+id/videoView"
         android:layout_alignBottom="@+id/videoView"/>
@@ -35,8 +25,8 @@
         android:translationY="237dp"
         android:layout_width="52dp"
         android:layout_height="66dp"
-        android:id="@+id/trouver_1_ere_lettre"
-        android:background="#AA888888"
+        android:id="@+id/trouverPremiereLettre"
+        android:background="#00888888"
         android:onClick="trouver1ereLettre"
         android:layout_alignLeft="@+id/videoView"
         android:layout_alignBottom="@+id/videoView"/>
@@ -46,9 +36,20 @@
         android:translationY="92dp"
         android:layout_width="45dp"
         android:layout_height="58dp"
-        android:id="@+id/trouver_mot"
-        android:background="#AA888888"
+        android:id="@+id/trouverMot"
+        android:background="#00888888"
         android:onClick="trouverMot"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
+    <Button
+        android:translationX="120dp"
+        android:translationY="10dp"
+        android:layout_width="65dp"
+        android:layout_height="37dp"
+        android:id="@+id/retour"
+        android:background="#AA888888"
+        android:onClick="retour"
         android:layout_alignLeft="@+id/videoView"
         android:layout_alignBottom="@+id/videoView"/>
 
@@ -58,8 +59,8 @@
         android:layout_width="65dp"
         android:layout_height="32dp"
         android:id="@+id/options"
-        android:background="#AA888888"
-        android:onClick="openOptions"
+        android:background="#00888888"
+        android:onClick="options"
         android:layout_alignLeft="@+id/videoView"
         android:layout_alignBottom="@+id/videoView"/>
 
@@ -68,11 +69,16 @@
         android:translationY="43dp"
         android:layout_width="65dp"
         android:layout_height="32dp"
-        android:id="@+id/help"
-        android:background="#AA888888"
-        android:onClick="openHelp"
+        android:id="@+id/aide"
+        android:background="#00888888"
+        android:onClick="aide"
         android:layout_alignLeft="@+id/videoView"
         android:layout_alignBottom="@+id/videoView"/>
+
+
+
+
+
 
 
 </RelativeLayout>

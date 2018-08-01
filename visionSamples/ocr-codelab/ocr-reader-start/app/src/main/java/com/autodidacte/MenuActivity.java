@@ -10,13 +10,16 @@ import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class MenuPremiereLettreActivity extends Activity {
+public class MenuActivity extends Activity {
+
+
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -35,12 +38,24 @@ public class MenuPremiereLettreActivity extends Activity {
      */
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
+    //private View mContentView;
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
         @Override
         public void run() {
             // Delayed removal of status and navigation bar
 
+            // Note that some of these constants are new as of API 16 (Jelly Bean)
+            // and API 19 (KitKat). It is safe to use them, as they are inlined
+            // at compile-time and do nothing on earlier devices.
+            /*
+            mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+                    */
         }
     };
     //private View mControlsView;
@@ -77,61 +92,101 @@ public class MenuPremiereLettreActivity extends Activity {
         }
     };
 
+    Button _bouton = null;
 
-    Button _trouverPremiereLettre = null;
+    class Rectangle
+    {
+        public int x;
+        public int y;
+        public int w;
+        public int h;
+
+        Rectangle(int x, int y, int w, int h)
+        {
+            this.x = x;
+            this.y = y;
+            this.w = w;
+            this.h = h;
+        }
+    }
+
+    private Rectangle computeButtonPositionFromGameType(GameEngine.GameType type)
+    {
+        int x = 0, y = 0, w = 0, h = 0;
+        if(type == GameEngine.GameType.eTrouverMot)
+        {
+            x = 2500;
+            y = 1000;
+            w = 1500;
+            h = 1000;
+        }
+        else if(type == GameEngine.GameType.eTrouverLettre)
+        {
+            x = 1600;
+            y = 2000;
+            w = 3700;
+            h = 4200;
+        }
+        else if(type == GameEngine.GameType.eTrouverPremiereLettre)
+        {
+            x = 2500;
+            y = 1000;
+            w = 1500;
+            h = 1000;
+        }
+        Rectangle rect = new Rectangle(x, y, w, h);
+        return rect;
+    }
 
     class OnVideoReadyCallback implements Utils.IOnVideoReadyCallback
     {
         public void execute(VideoView video)
         {
-            _trouverPremiereLettre = (Button)findViewById(R.id.trouverPremiereLettre);
-
-            Button arr[] = {_trouverPremiereLettre};
-
             int color = 0xAA888888;
-            for(int i = 0; i < arr.length; i++)
-            {
-                Button b = arr[i];
-                b.setBackgroundColor(color);
-            }
+            _bouton = (Button)findViewById(R.id.bouton);
+            _bouton.setBackgroundColor(color);
+            int wScreen = video.getWidth();
+            int hScreen = video.getHeight();
 
-            int w = video.getWidth();
-            int h = video.getHeight();
+            GameEngine.configureGeneralButtons(MenuActivity.this, wScreen, hScreen, R.id.retour, R.id.options, R.id.aide);
 
-            GameEngine.configureGeneralButtons(MenuPremiereLettreActivity.this, w, h, R.id.retour, R.id.options, R.id.aide);
+            Rectangle rect = computeButtonPositionFromGameType(GameEngine.getGameType());
 
             int precision = 10000;
-
-            int xLettre = 2500;
-            int yLettre = 1000;
-            int wLettre = 1500;
-            int hLettre = 1000;
-
-
-
-            _trouverPremiereLettre.setX(w * xLettre / precision);
-            _trouverPremiereLettre.setY(h * yLettre / precision);
-            _trouverPremiereLettre.setWidth(w * wLettre / precision);
-            _trouverPremiereLettre.setHeight(h * hLettre / precision);
-
-
-
+            _bouton.setX(wScreen * rect.x / precision);
+            _bouton.setY(hScreen * rect.y / precision);
+            int w = wScreen * rect.w / precision;
+            int h = hScreen * rect.h / precision;
+            _bouton.setLayoutParams(new RelativeLayout.LayoutParams(w, h));
         }
     }
 
-
     OnVideoReadyCallback _onVideoReadyCallback = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        setContentView(R.layout.activity_menu_premiere_lettre);
+        setContentView(R.layout.activity_menu);
 
         if(_onVideoReadyCallback == null)
             _onVideoReadyCallback = new OnVideoReadyCallback();
 
         Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
-        Utils.playVideo(this, R.raw.lettremenu);
+        Utils.playVideo(this, GameEngine.getVideoFromGameType(GameEngine.getGameType()));
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        if(GameEngine.returnToAlphabetActvity)
+            finish();
+        else {
+            Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
+            Utils.stopVideo();
+            Utils.playVideo(this, R.raw.lettremenu);
+        }
     }
 
     @Override
@@ -175,6 +230,8 @@ public class MenuPremiereLettreActivity extends Activity {
     @SuppressLint("InlinedApi")
     private void show() {
         // Show the system bar
+        /*mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);*/
         mVisible = true;
 
         // Schedule a runnable to display UI elements after a delay
@@ -191,13 +248,12 @@ public class MenuPremiereLettreActivity extends Activity {
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
 
-    public void premiereLettre(View view)
+    public void launch(View view)
     {
-        GameEngine.setGameType(GameEngine.GameType.eTrouverPremiereLettre);
-        Intent ocrCaptureActivity = new Intent(MenuPremiereLettreActivity.this, QuestionActivity.class);
-        startActivity(ocrCaptureActivity);
+        //GameEngine.setGameType(GameEngine.GameType.eTrouverMot);
+        Intent questionActivity = new Intent(this, QuestionActivity.class);
+        startActivityForResult(questionActivity, GameEngine.QUESTION_ACTIVITY);
     }
-
 
 
     public void retour(View view)
