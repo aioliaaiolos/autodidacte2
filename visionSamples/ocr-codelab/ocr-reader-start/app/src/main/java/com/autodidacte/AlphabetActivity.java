@@ -5,11 +5,14 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
 /**
@@ -33,11 +36,8 @@ public class AlphabetActivity extends Activity {
             _trouverLettre = (Button)findViewById(R.id.trouverLettre);
             _trouverMot = (Button)findViewById(R.id.trouverMot);
             _trouverPremiereLettre = (Button)findViewById(R.id.trouverPremiereLettre);
-            _sortie = (Button)findViewById(R.id.retour);
-            _options = (Button)findViewById(R.id.options);
-            _aide = (Button)findViewById(R.id.aide);
 
-            Button arr[] = {_trouverLettre, _trouverPremiereLettre, _trouverMot, _sortie, _options, _aide}; //new Button[6];
+            Button arr[] = {_trouverLettre, _trouverPremiereLettre, _trouverMot/*, _sortie, _options, _aide*/}; //new Button[6];
 
             int color = 0xAA888888;
             for(int i = 0; i < arr.length; i++)
@@ -46,71 +46,44 @@ public class AlphabetActivity extends Activity {
                 b.setBackgroundColor(color);
             }
 
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+
 
             int w = video.getWidth();
             int h = video.getHeight();
 
             int precision = 10000;
 
-            int xLettre = 4000;
-            int yLettre = 800;
-            int wLettre = 500;
-            int hLettre = 400;
+            int xLettre = 4300;
+            int yLettre = 700;
+            int wLettre = 1400;
+            int hLettre = 1900;
 
-            int xPremiereLettre = 4700;
-            int yPremiereLettre = 7100;
-            int wPremiereLettre = 500;
-            int hPremiereLettre = 550;
+            int xPremiereLettre = 5000;
+            int yPremiereLettre = 7000;
+            int wPremiereLettre = 1000;
+            int hPremiereLettre = 2100;
 
-            int xMot = 7350;
+            int xMot = 7900;
             int yMot = 2650;
-            int wMot = 400;
-            int hMot = 550;
-
-            int xSortie = 1700;
-            int ySortie = 200;
-            int wSortie = 700;
-            int hSortie = 250;
-
-            int xOptions = 8200;
-            int yOptions = 200;
-            int wOptions = 600;
-            int hOptions = 250;
-
-            int xAide = 8200;
-            int yAide = 1200;
-            int wAide = 600;
-            int hAide = 250;
+            int wMot = 700;
+            int hMot = 1900;
 
             _trouverLettre.setX(w * xLettre / precision);
             _trouverLettre.setY(h * yLettre / precision);
-            _trouverLettre.setWidth(w * wLettre / precision);
-            _trouverLettre.setHeight(h * hLettre / precision);
+            _trouverLettre.setLayoutParams(new RelativeLayout.LayoutParams(w * wLettre / precision,h * hLettre / precision));
 
             _trouverPremiereLettre.setX(w * xPremiereLettre / precision);
             _trouverPremiereLettre.setY(h * yPremiereLettre / precision);
-            _trouverPremiereLettre.setWidth(w * wPremiereLettre / precision);
-            _trouverPremiereLettre.setHeight(h * hPremiereLettre / precision);
+            _trouverPremiereLettre.setLayoutParams(new RelativeLayout.LayoutParams(w * wPremiereLettre / precision,h * hPremiereLettre / precision));
 
             _trouverMot.setX(w * xMot / precision);
             _trouverMot.setY(h * yMot / precision);
-            _trouverMot.setWidth(w * wMot / precision);
-            _trouverMot.setHeight(h * yMot / precision);
+            _trouverMot.setLayoutParams(new RelativeLayout.LayoutParams(w * wMot / precision,h * hMot / precision));
 
-            _sortie.setX(w * xSortie / precision);
-            _sortie.setY(h * ySortie / precision);
-            _sortie.setWidth(w * wSortie / precision);
-            _sortie.setHeight(h * hSortie / precision);
-
-            _aide.setX(w * xAide / precision);
-            _aide.setY(h * yAide / precision);
-            _aide.setWidth(w * wAide / precision);
-            _aide.setHeight(h * hAide / precision);
-
-            _options.setX(w * xOptions / precision);
-            _options.setY(h * yOptions / precision);
-            _options.setWidth(w * wOptions / precision);
-            _options.setHeight(h * hOptions / precision);
+            GameEngine.configureGeneralButtons(AlphabetActivity.this, w, h, R.id.retour, R.id.options, R.id.aide);
         }
     }
 
@@ -191,7 +164,7 @@ public class AlphabetActivity extends Activity {
             _onVideoReadyCallback = new OnVideoReadyCallback();
 
         Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
-        Utils.stopVideo();
+        //Utils.stopVideo();
         Utils.playVideo(this, R.raw.mainmenu);
         mVisible = true;
     }
@@ -200,13 +173,13 @@ public class AlphabetActivity extends Activity {
     protected void onResume()
     {
         super.onResume();
-        if(GameEngine.returnToAlphabetActvity)
+        if (GameEngine.returnToAlphabetActvity)
             GameEngine.returnToAlphabetActvity = false;
 
-        if(_onVideoReadyCallback == null)
+        if (_onVideoReadyCallback == null)
             _onVideoReadyCallback = new OnVideoReadyCallback();
         Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
-        Utils.stopVideo();
+        //Utils.stopVideo();
         Utils.playVideo(this, R.raw.mainmenu);
     }
 
@@ -274,11 +247,6 @@ public class AlphabetActivity extends Activity {
     public void options(View view)
     {
         GameEngine.options(this, view);
-    }
-
-    public void aide(View view)
-    {
-        GameEngine.aide(this, view);
     }
 
 }

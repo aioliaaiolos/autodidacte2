@@ -4,32 +4,16 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.media.MediaPlayer;
-import android.net.Uri;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.MediaController;
-import android.widget.TextView;
-import android.widget.VideoView;
 
 import java.security.*;
 import java.util.Arrays;
-
-import static java.security.AccessController.getContext;
-import static java.security.spec.MGF1ParameterSpec.SHA1;
 //import android.app.
 
 public class MainActivity extends AppCompatActivity {
@@ -106,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
             mCredentialsValidated = true;
             if (!mCredentialsValidated) {
                 final AlertDialog.Builder dlgAlert = new AlertDialog.Builder(this);
-                dlgAlert.setView(R.layout.dialog_security_code);
+                dlgAlert.setView(R.layout.activity_question);
                 dlgAlert.setMessage("Entrez le code de securite");
                 dlgAlert.setTitle("Code");
                 dlgAlert.setPositiveButton("Ok",

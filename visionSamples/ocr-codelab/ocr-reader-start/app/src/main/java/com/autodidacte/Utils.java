@@ -21,7 +21,7 @@ public class Utils {
     static VideoView mVideo;
     static int durat = 0;
     static IOnVideoReadyCallback _videoReadyCallback = null;
-    static MediaPlayer.OnPreparedListener _onPreparedListener = null;
+   // static MediaPlayer.OnPreparedListener _onPreparedListener = null;
     static OnCompletionListener _onCompletionListener;
     static int _currentVideoId = -1;
 
@@ -47,6 +47,7 @@ public class Utils {
         if (mVideo != null) {
             Uri uri = Uri.parse("android.resource://" + activity.getPackageName() + "/" + videoId);
             mVideo.setVideoURI(uri);
+            /*
             if(_onPreparedListener == null)
                 _onPreparedListener = new MediaPlayer.OnPreparedListener() {
                     public void onPrepared(MediaPlayer mp) {
@@ -65,8 +66,28 @@ public class Utils {
                             _videoReadyCallback.execute(mVideo);
                     }
                 };
+                */
 
-            mVideo.setOnPreparedListener(_onPreparedListener);
+            mVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+
+                    //int duration = mVideo.getDuration();
+                    int duration = mVideo.getDuration();
+                    int w = mVideo.getWidth();
+                    int h = mVideo.getHeight();
+
+                    int w2 = mp.getVideoWidth();
+                    int h2 = mp.getVideoHeight();
+
+                    //durat = duration;
+                    //mVideo.requestFocus();
+                    //mVideo.start();
+                    mp.start();
+                    if(_videoReadyCallback != null)
+                        _videoReadyCallback.execute(mVideo);
+                }
+            });
 
             if(_onCompletionListener == null) {
                 _onCompletionListener = new OnCompletionListener();

@@ -9,6 +9,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
+import android.widget.RelativeLayout;
+import android.widget.VideoView;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -75,13 +78,31 @@ public class MenuOptionsActivity extends Activity {
         }
     };
 
+    class OnVideoReadyCallback implements Utils.IOnVideoReadyCallback {
+        public void execute(VideoView video) {
+            int color = 0xAA888888;
+
+            int wScreen = video.getWidth();
+            int hScreen = video.getHeight();
+
+            GameEngine.configureGeneralButtons(MenuOptionsActivity.this, wScreen, hScreen, R.id.retour, 0, 0);
+        }
+    }
+
+    OnVideoReadyCallback _onVideoReadyCallback = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_menu_options);
-        Utils.playVideo(this, R.raw.mainmenu);
+
+        if(_onVideoReadyCallback == null)
+            _onVideoReadyCallback = new OnVideoReadyCallback();
+
+        Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
+        Utils.playVideo(this, R.raw.options);
 
         mVisible = true;
         //mControlsView = findViewById(R.id.fullscreen_content_controls);

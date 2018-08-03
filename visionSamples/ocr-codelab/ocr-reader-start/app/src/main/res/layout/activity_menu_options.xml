@@ -8,4 +8,14 @@
 
     <include layout="@layout/video_background" />
 
+    <Button
+        android:translationX="120dp"
+        android:translationY="10dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:id="@+id/retour"
+        android:background="#AA888888"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
 </RelativeLayout>

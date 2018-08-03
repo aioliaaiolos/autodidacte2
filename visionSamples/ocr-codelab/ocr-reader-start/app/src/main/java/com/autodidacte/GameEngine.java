@@ -10,6 +10,7 @@ import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
 import java.util.ArrayList;
@@ -113,7 +114,7 @@ public class GameEngine {
 
             AudioManager audioManager = (AudioManager) _questionActivity.getSystemService(Context.AUDIO_SERVICE);
             int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, max * 3 / 2, AudioManager.FLAG_SHOW_UI);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, max / 2, AudioManager.FLAG_SHOW_UI);
             _init = true;
         }
     }
@@ -497,7 +498,9 @@ public class GameEngine {
 
     public static void retour(Activity parent, View view)
     {
-        Utils.setOnVideoReadyCallback(null);
+        //Utils.setOnVideoReadyCallback(null);
+        String name = parent.getLocalClassName();
+        //if(parent.getLocalClassName())
         parent.finish();
     }
 
@@ -507,19 +510,26 @@ public class GameEngine {
         parent.startActivity(menuOptions);
     }
 
-    public static void aide(Activity parent, View view)
-    {
-    }
-
-    public static int getVideoFromGameType(GameEngine.GameType type)
+    public static int getVideoFromGameType(GameEngine.GameType type, Activity activity)
     {
         int video = 0;
-        if(type == GameEngine.GameType.eTrouverMot)
-            video = R.raw.questionmot;
-        else if(type == GameEngine.GameType.eTrouverPremiereLettre)
-            video = R.raw.questionpremierelettre;
-        else if(type == GameEngine.GameType.eTrouverLettre)
-            video = R.raw.questionlettres;
+        String name = activity.getLocalClassName();
+        if(name.toLowerCase().indexOf("menu") != -1) {
+            if (type == GameEngine.GameType.eTrouverMot)
+                video = R.raw.motmenu;
+            else if (type == GameEngine.GameType.eTrouverPremiereLettre)
+                video = R.raw.premierelettremenu;
+            else if (type == GameEngine.GameType.eTrouverLettre)
+                video = R.raw.lettremenu;
+        }
+        else if(name.toLowerCase().indexOf("question") != -1) {
+            if (type == GameEngine.GameType.eTrouverMot)
+                video = R.raw.questionmot;
+            else if (type == GameEngine.GameType.eTrouverPremiereLettre)
+                video = R.raw.questionpremierelettre;
+            else if (type == GameEngine.GameType.eTrouverLettre)
+                video = R.raw.questionlettres;
+        }
         return video;
     }
 
@@ -529,8 +539,6 @@ public class GameEngine {
         {
             video.setOnCompletionListener(null);
             GameEngine.askNextItem();
-            //Utils.Sleep(3000);
-            //GameEngine.launchOcrCapture();
         }
     }
 
@@ -546,7 +554,8 @@ public class GameEngine {
         for(int i = 0; i < arr.length; i++)
         {
             Button b = arr[i];
-            b.setBackgroundColor(color);
+            if(b != null)
+                b.setBackgroundColor(color);
         }
 
         int w = videoWidth;
@@ -554,35 +563,65 @@ public class GameEngine {
 
         int precision = 10000;
 
-        int xRetour = 1750;
+        int xRetour = 1800;
         int yRetour = 250;
-        int wRetour = 750;
-        int hRetour = 300;
+        int wRetour = 1300;
+        int hRetour = 1200;
 
-        int xOptions = 8150;
+        int xOptions = 8700;
         int yOptions = 180;
-        int wOptions = 600;
-        int hOptions = 270;
+        int wOptions = 1100;
+        int hOptions = 1000;
 
-        int xAide = 8150;
+        int xAide = 8700;
         int yAide = 1200;
-        int wAide = 600;
-        int hAide = 270;
+        int wAide = 1100;
+        int hAide = 1000;
 
-        retour.setX(w * xRetour / precision);
-        retour.setY(h * yRetour / precision);
-        retour.setWidth(w * wRetour / precision);
-        retour.setHeight(h * hRetour / precision);
+        if(retour != null) {
+            retour.setX(w * xRetour / precision);
+            retour.setY(h * yRetour / precision);
+            retour.setLayoutParams(new RelativeLayout.LayoutParams(w * wRetour / precision, h * hRetour / precision));
+            retour.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Activity parent = ((Activity)v.getContext());
+                    if(parent != null) {
+                        String name = parent.getLocalClassName();
+                        if(name == "alphabetActivity") {
+                            MainActivity.mustFinish();
+                        }
+                        parent.finish();
+                    }
+                }
+            });
+        }
 
-        aide.setX(w * xAide / precision);
-        aide.setY(h * yAide / precision);
-        aide.setWidth(w * wAide / precision);
-        aide.setHeight(h * hAide / precision);
+        if(aide != null) {
+            aide.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //Intent menuOptions = new Intent(v.getContext(), MenuOptionsActivity.class);
+                    //v.getContext().startActivity(menuOptions);
+                }
+            });
+            aide.setX(w * xAide / precision);
+            aide.setY(h * yAide / precision);
+            aide.setLayoutParams(new RelativeLayout.LayoutParams(w * wAide / precision, h * hAide / precision));
+        }
 
-        options.setX(w * xOptions / precision);
-        options.setY(h * yOptions / precision);
-        options.setWidth(w * wOptions / precision);
-        options.setHeight(h * hOptions / precision);
+        if(options != null) {
+            options.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent menuOptions = new Intent(v.getContext(), MenuOptionsActivity.class);
+                    v.getContext().startActivity(menuOptions);
+                }
+            });
+            options.setX(w * xOptions / precision);
+            options.setY(h * yOptions / precision);
+            options.setLayoutParams(new RelativeLayout.LayoutParams(w * wOptions / precision, h * hOptions / precision));
+        }
     }
 
 }

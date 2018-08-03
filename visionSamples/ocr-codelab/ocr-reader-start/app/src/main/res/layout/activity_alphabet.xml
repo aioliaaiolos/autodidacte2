@@ -12,8 +12,8 @@
     <Button
         android:translationX="255dp"
         android:translationY="24dp"
-        android:layout_width="80dp"
-        android:layout_height="68dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:id="@+id/trouverLettre"
         android:background="#00888888"
         android:onClick="trouverLettre"
@@ -23,8 +23,8 @@
     <Button
         android:translationX="302dp"
         android:translationY="237dp"
-        android:layout_width="52dp"
-        android:layout_height="66dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:id="@+id/trouverPremiereLettre"
         android:background="#00888888"
         android:onClick="trouver1ereLettre"
@@ -34,8 +34,8 @@
     <Button
         android:translationX="467dp"
         android:translationY="92dp"
-        android:layout_width="45dp"
-        android:layout_height="58dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:id="@+id/trouverMot"
         android:background="#00888888"
         android:onClick="trouverMot"
@@ -45,33 +45,30 @@
     <Button
         android:translationX="120dp"
         android:translationY="10dp"
-        android:layout_width="65dp"
-        android:layout_height="37dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:id="@+id/retour"
         android:background="#AA888888"
-        android:onClick="retour"
         android:layout_alignLeft="@+id/videoView"
         android:layout_alignBottom="@+id/videoView"/>
 
     <Button
         android:translationX="517dp"
         android:translationY="8dp"
-        android:layout_width="65dp"
-        android:layout_height="32dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:id="@+id/options"
         android:background="#00888888"
-        android:onClick="options"
         android:layout_alignLeft="@+id/videoView"
         android:layout_alignBottom="@+id/videoView"/>
 
     <Button
         android:translationX="517dp"
         android:translationY="43dp"
-        android:layout_width="65dp"
-        android:layout_height="32dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:id="@+id/aide"
         android:background="#00888888"
-        android:onClick="aide"
         android:layout_alignLeft="@+id/videoView"
         android:layout_alignBottom="@+id/videoView"/>
 

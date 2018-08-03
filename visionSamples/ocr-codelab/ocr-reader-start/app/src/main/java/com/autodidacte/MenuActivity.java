@@ -94,15 +94,13 @@ public class MenuActivity extends Activity {
 
     Button _bouton = null;
 
-    class Rectangle
-    {
+    class Rectangle {
         public int x;
         public int y;
         public int w;
         public int h;
 
-        Rectangle(int x, int y, int w, int h)
-        {
+        Rectangle(int x, int y, int w, int h) {
             this.x = x;
             this.y = y;
             this.w = w;
@@ -110,40 +108,32 @@ public class MenuActivity extends Activity {
         }
     }
 
-    private Rectangle computeButtonPositionFromGameType(GameEngine.GameType type)
-    {
+    private Rectangle computeButtonPositionFromGameType(GameEngine.GameType type) {
         int x = 0, y = 0, w = 0, h = 0;
-        if(type == GameEngine.GameType.eTrouverMot)
-        {
+        if (type == GameEngine.GameType.eTrouverMot) {
             x = 2500;
-            y = 1000;
-            w = 1500;
-            h = 1000;
-        }
-        else if(type == GameEngine.GameType.eTrouverLettre)
-        {
+            y = 1900;
+            w = 2000;
+            h = 4500;
+        } else if (type == GameEngine.GameType.eTrouverLettre) {
             x = 1600;
             y = 2000;
             w = 3700;
-            h = 4200;
-        }
-        else if(type == GameEngine.GameType.eTrouverPremiereLettre)
-        {
-            x = 2500;
-            y = 1000;
-            w = 1500;
-            h = 1000;
+            h = 4300;
+        } else if (type == GameEngine.GameType.eTrouverPremiereLettre) {
+            x = 3000;
+            y = 1200;
+            w = 2500;
+            h = 4000;
         }
         Rectangle rect = new Rectangle(x, y, w, h);
         return rect;
     }
 
-    class OnVideoReadyCallback implements Utils.IOnVideoReadyCallback
-    {
-        public void execute(VideoView video)
-        {
+    class OnVideoReadyCallback implements Utils.IOnVideoReadyCallback {
+        public void execute(VideoView video) {
             int color = 0xAA888888;
-            _bouton = (Button)findViewById(R.id.bouton);
+            _bouton = (Button) findViewById(R.id.bouton);
             _bouton.setBackgroundColor(color);
             int wScreen = video.getWidth();
             int hScreen = video.getHeight();
@@ -169,23 +159,22 @@ public class MenuActivity extends Activity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_menu);
 
-        if(_onVideoReadyCallback == null)
+        if (_onVideoReadyCallback == null)
             _onVideoReadyCallback = new OnVideoReadyCallback();
 
         Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
-        Utils.playVideo(this, GameEngine.getVideoFromGameType(GameEngine.getGameType()));
+        Utils.playVideo(this, GameEngine.getVideoFromGameType(GameEngine.getGameType(), this));
     }
 
     @Override
-    protected void onResume()
-    {
+    protected void onResume() {
         super.onResume();
-        if(GameEngine.returnToAlphabetActvity)
+        if (GameEngine.returnToAlphabetActvity)
             finish();
         else {
             Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
             Utils.stopVideo();
-            Utils.playVideo(this, R.raw.lettremenu);
+            Utils.playVideo(this, GameEngine.getVideoFromGameType(GameEngine.getGameType(), this));
         }
     }
 
@@ -248,27 +237,9 @@ public class MenuActivity extends Activity {
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
 
-    public void launch(View view)
-    {
+    public void launch(View view) {
         //GameEngine.setGameType(GameEngine.GameType.eTrouverMot);
         Intent questionActivity = new Intent(this, QuestionActivity.class);
         startActivityForResult(questionActivity, GameEngine.QUESTION_ACTIVITY);
-    }
-
-
-    public void retour(View view)
-    {
-        GameEngine.retour(this, view);
-
-    }
-
-    public void options(View view)
-    {
-        GameEngine.options(this, view);
-    }
-
-    public void aide(View view)
-    {
-        GameEngine.aide(this, view);
     }
 }

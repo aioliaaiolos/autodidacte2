@@ -90,13 +90,12 @@ public class QuestionActivity extends Activity {
     {
         public void execute()
         {
-            int video = GameEngine.getVideoFromGameType(GameEngine.getGameType());
+            int video = GameEngine.getVideoFromGameType(GameEngine.getGameType(), QuestionActivity.this);
 
             if(_onVideoReadyCallback == null)
                 _onVideoReadyCallback = new GameEngine.OnVideoReadyCallback();
 
             Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
-            //if(Utils.currentVideoId() != video)
             Utils.stopVideo();
             Utils.playVideo(QuestionActivity.this, video);
             mVisible = true;

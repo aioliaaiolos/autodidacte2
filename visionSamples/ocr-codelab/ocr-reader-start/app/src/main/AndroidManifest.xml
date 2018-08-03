@@ -41,44 +41,9 @@
             android:label="@string/title_activity_alphabet"
             android:theme="@style/FullscreenTheme" />
         <activity
-            android:name=".MenuMotActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_menu_mot"
-            android:theme="@style/FullscreenTheme" />
-        <activity
-            android:name=".MenuLettreActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_menu_lettre"
-            android:theme="@style/FullscreenTheme" />
-        <activity
-            android:name=".MenuPremiereLettreActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_menu_premiere_lettre"
-            android:theme="@style/FullscreenTheme" />
-        <activity
             android:name=".MenuOptionsActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_menu_options"
-            android:theme="@style/FullscreenTheme" />
-        <activity
-            android:name=".QuestionMotActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_question"
-            android:theme="@style/FullscreenTheme" />
-        <activity
-            android:name=".QuestionLettreActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_question_lettre"
-            android:theme="@style/FullscreenTheme" />
-        <activity
-            android:name=".QuestionPremiereLettreActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_question_premiere_lettre"
-            android:theme="@style/FullscreenTheme" />
-        <activity
-            android:name=".QuestionLettreActivity2"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_question_lettre2"
             android:theme="@style/FullscreenTheme" />
         <activity
             android:name=".QuestionActivity"
