@@ -3,22 +3,22 @@ package com.autodidacte;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
-import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
+import android.speech.tts.TextToSpeech;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
-import android.widget.RelativeLayout;
-import android.widget.VideoView;
+
+import java.util.Hashtable;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class MenuActivity extends Activity {
+public class testActivity extends Activity {
 
+    private TextToSpeech tts;
+    static Hashtable<Character, Integer> charToId = null;
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -38,7 +38,7 @@ public class MenuActivity extends Activity {
      */
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
-    //private View mContentView;
+    private View mContentView;
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
         @Override
@@ -48,17 +48,15 @@ public class MenuActivity extends Activity {
             // Note that some of these constants are new as of API 16 (Jelly Bean)
             // and API 19 (KitKat). It is safe to use them, as they are inlined
             // at compile-time and do nothing on earlier devices.
-            /*
             mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
                     | View.SYSTEM_UI_FLAG_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                     | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-                    */
         }
     };
-    //private View mControlsView;
+    private View mControlsView;
     private final Runnable mShowPart2Runnable = new Runnable() {
         @Override
         public void run() {
@@ -67,7 +65,7 @@ public class MenuActivity extends Activity {
             if (actionBar != null) {
                 actionBar.show();
             }
-            //mControlsView.setVisibility(View.VISIBLE);
+            mControlsView.setVisibility(View.VISIBLE);
         }
     };
     private boolean mVisible;
@@ -92,90 +90,39 @@ public class MenuActivity extends Activity {
         }
     };
 
-    Button _bouton = null;
-
-    class Rectangle {
-        public int x;
-        public int y;
-        public int w;
-        public int h;
-
-        Rectangle(int x, int y, int w, int h) {
-            this.x = x;
-            this.y = y;
-            this.w = w;
-            this.h = h;
-        }
-    }
-
-    private Rectangle computeButtonPositionFromGameType(GameEngine.GameType type) {
-        int x = 0, y = 0, w = 0, h = 0;
-        if (type == GameEngine.GameType.eTrouverMot) {
-            x = 2500;
-            y = 1900;
-            w = 2000;
-            h = 4500;
-        } else if (type == GameEngine.GameType.eTrouverLettre) {
-            x = 1600;
-            y = 2000;
-            w = 3700;
-            h = 4300;
-        } else if (type == GameEngine.GameType.eTrouverPremiereLettre) {
-            x = 3000;
-            y = 1200;
-            w = 2500;
-            h = 4000;
-        }
-        Rectangle rect = new Rectangle(x, y, w, h);
-        return rect;
-    }
-
-    class OnVideoReadyCallback implements Utils.IOnVideoReadyCallback {
-        public void execute(VideoView video) {
-            int color = 0xAA888888;
-            _bouton = (Button) findViewById(R.id.bouton);
-            _bouton.setBackgroundColor(color);
-            int wScreen = video.getWidth();
-            int hScreen = video.getHeight();
-
-            GameEngine.configureGeneralButtons(MenuActivity.this, wScreen, hScreen, R.id.retour, R.id.options, R.id.aide);
-
-            Rectangle rect = computeButtonPositionFromGameType(GameEngine.getGameType());
-
-            int precision = 10000;
-            _bouton.setX(wScreen * rect.x / precision);
-            _bouton.setY(hScreen * rect.y / precision);
-            int w = wScreen * rect.w / precision;
-            int h = hScreen * rect.h / precision;
-            _bouton.setLayoutParams(new RelativeLayout.LayoutParams(w, h));
-        }
-    }
-
-    OnVideoReadyCallback _onVideoReadyCallback = null;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        setContentView(R.layout.activity_menu);
 
-        if (_onVideoReadyCallback == null)
-            _onVideoReadyCallback = new OnVideoReadyCallback();
-
-        Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
-        Utils.playVideo(this, GameEngine.getVideoFromGameType(GameEngine.getGameType(), this));
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (GameEngine.returnToAlphabetActvity)
-            finish();
-        else {
-            Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
-            Utils.stopVideo();
-            Utils.playVideo(this, GameEngine.getVideoFromGameType(GameEngine.getGameType(), this));
+        if(charToId == null)
+        {
+            initMapping();
         }
+
+        setContentView(R.layout.activity_test);
+
+        mVisible = true;
+        mControlsView = findViewById(R.id.fullscreen_content_controls);
+        mContentView = findViewById(R.id.fullscreen_content);
+
+
+        // Set up the user interaction to manually show or hide the system UI.
+        mContentView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                toggle();
+            }
+        });
+
+        // Upon interacting with UI controls, delay any scheduled hide()
+        // operations to prevent the jarring behavior of controls going away
+        // while interacting with the UI.
+        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+
+
+        Utils.Sleep(1000);
+        setResult(1);
+        finish();
     }
 
     @Override
@@ -186,12 +133,6 @@ public class MenuActivity extends Activity {
         // created, to briefly hint to the user that UI controls
         // are available.
         delayedHide(100);
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        Utils.setOnVideoReadyCallback(null);
     }
 
     private void toggle() {
@@ -208,7 +149,7 @@ public class MenuActivity extends Activity {
         if (actionBar != null) {
             actionBar.hide();
         }
-        //mControlsView.setVisibility(View.GONE);
+        mControlsView.setVisibility(View.GONE);
         mVisible = false;
 
         // Schedule a runnable to remove the status and navigation bar after a delay
@@ -219,8 +160,8 @@ public class MenuActivity extends Activity {
     @SuppressLint("InlinedApi")
     private void show() {
         // Show the system bar
-        /*mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);*/
+        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
         mVisible = true;
 
         // Schedule a runnable to display UI elements after a delay
@@ -237,8 +178,35 @@ public class MenuActivity extends Activity {
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
 
-    public void launch(View view) {
-        Intent questionActivity = new Intent(this, QuestionActivity.class);
-        startActivity(questionActivity);
+
+    static void initMapping()
+    {
+        charToId = new Hashtable<Character, Integer>();
+        charToId.put('a', R.drawable.a);
+        charToId.put('b', R.drawable.b);
+        charToId.put('c', R.drawable.c);
+        charToId.put('d', R.drawable.d);
+        charToId.put('e', R.drawable.e);
+        charToId.put('f', R.drawable.f);
+        charToId.put('g', R.drawable.g);
+        charToId.put('h', R.drawable.h);
+        charToId.put('i', R.drawable.i);
+        charToId.put('j', R.drawable.j);
+        charToId.put('k', R.drawable.k);
+        charToId.put('l', R.drawable.l);
+        charToId.put('m', R.drawable.m);
+        charToId.put('n', R.drawable.n);
+        charToId.put('o', R.drawable.o);
+        charToId.put('p', R.drawable.p);
+        charToId.put('q', R.drawable.q);
+        charToId.put('r', R.drawable.r);
+        charToId.put('s', R.drawable.s);
+        charToId.put('t', R.drawable.t);
+        charToId.put('u', R.drawable.u);
+        charToId.put('v', R.drawable.v);
+        charToId.put('w', R.drawable.w);
+        charToId.put('x', R.drawable.x);
+        //charToId.put('y', R.drawable.y);
+        charToId.put('z', R.drawable.z);
     }
 }

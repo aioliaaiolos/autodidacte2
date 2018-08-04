@@ -475,11 +475,12 @@ public class GameEngine {
         String item = currentItem();
 
         String sentence = "Bravo, " + wordFound + " commence bien par " + item + " ! ";
-        Intent successActivity = new Intent(_questionActivity, SuccessActivity.class);
-        successActivity.putExtra("sentence", sentence);
-        successActivity.putExtra("result", "success");
-        successActivity.putExtra("currentItem", item);
-        _questionActivity.startActivityForResult(successActivity, SUCCESS_ACTIVITY);
+        Intent sucess = new Intent(_ocrCaptureActivity, SuccessActivity.class);
+        sucess.putExtra("sentence", sentence);
+        sucess.putExtra("result", "success");
+        sucess.putExtra("currentItem", item);
+
+        _ocrCaptureActivity.startActivityForResult(sucess, SUCCESS_ACTIVITY);        
     }
 
     static boolean isLow(char c)

@@ -149,7 +149,6 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             if (GameEngine.getGameType() == GameEngine.GameType.eTrouverMot) {
                 if (!rightWord.isEmpty()) {
                     GameEngine.onSuccess(rightWord);
-                    //finish();
                 } else if (!possibleWord.isEmpty()) {
                     GameEngine.onFail(possibleWord, ExpectedWord);
                 }
@@ -175,7 +174,6 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
-
         setContentView(R.layout.ocr_capture);
 
         SharedPreferences prefs = getPreferences(MODE_PRIVATE);
@@ -188,15 +186,6 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
         preview = (CameraSourcePreview) findViewById(R.id.preview);
         graphicOverlay = (GraphicOverlay<OcrGraphic>) findViewById(R.id.graphicOverlay);
-
-        // Set good defaults for capturing text.
-        //boolean autoFocus = true;
-        //boolean useFlash = true;
-
-        // Check for the camera permission before accessing the camera.  If the
-        // permission is not granted yet, request permission.
-        //checkCameraPermissionAnValidateIfNot(true, true);
-
 
         int rc = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
         if (rc == PackageManager.PERMISSION_GRANTED) {
@@ -217,6 +206,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, max * 3 / 2, AudioManager.FLAG_SHOW_UI);
 
         m_Detector._waitingForDetection = true;
+
     }
 
 
@@ -373,17 +363,15 @@ public final class OcrCaptureActivity extends AppCompatActivity {
      */
     @Override
     protected void onResume() {
-        if(!_justCreated) {
-            super.onResume();
-            startCameraSource();
-        }
-        else
-            _justCreated = false;
+        super.onResume();
+        startCameraSource();
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
+        int i = resultCode;
         finish();
     }
 
@@ -505,17 +493,16 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 Log.d(TAG, "text data is being spoken! " + text.getValue());
                 // TODO: Speak the string.
                 GameEngine.speak(text.getValue());
-            }
-            else {
+            } else {
                 Log.d(TAG, "text data is null");
             }
-        }
-        else {
-            Log.d(TAG,"no text detected");
+        } else {
+            Log.d(TAG, "no text detected");
         }
         _onTap = true;
         GameEngine.askNextItem();
         _onTap = false;
+
         return text != null;
     }
 

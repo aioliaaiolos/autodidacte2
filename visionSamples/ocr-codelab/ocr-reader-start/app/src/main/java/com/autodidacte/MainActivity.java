@@ -71,11 +71,10 @@ public class MainActivity extends AppCompatActivity {
 
         if (rc != PackageManager.PERMISSION_GRANTED) {
             //if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
-                final String[] permissions = new String[]{Manifest.permission.CAMERA};
-                ActivityCompat.requestPermissions(this, permissions, RC_HANDLE_CAMERA_PERM);
+            final String[] permissions = new String[]{Manifest.permission.CAMERA};
+            ActivityCompat.requestPermissions(this, permissions, RC_HANDLE_CAMERA_PERM);
             //}
-        }
-        else {
+        } else {
             SharedPreferences prefs = getPreferences(MODE_PRIVATE);
 
             boolean flush = false;
@@ -149,10 +148,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent apprendreAlphabet = new Intent(MainActivity.this, AlphabetActivity.class);
                 startActivity(apprendreAlphabet);
             }
-
         }
-
-
     }
 
 

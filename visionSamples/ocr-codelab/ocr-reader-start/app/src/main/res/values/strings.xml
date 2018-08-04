@@ -44,4 +44,6 @@
     <string name="title_activity_test_fullscreen">TestFullscreenActivity</string>
 
     <string name="title_activity_menu">MenuActivity</string>
+
+    <string name="title_activity_test">testActivity</string>
 </resources>

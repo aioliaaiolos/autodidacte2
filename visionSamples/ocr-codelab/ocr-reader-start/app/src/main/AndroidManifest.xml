@@ -54,6 +54,11 @@
             android:name=".MenuActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_menu"
+            android:theme="@style/FullscreenTheme" />
+        <activity
+            android:name=".testActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_test"
             android:theme="@style/FullscreenTheme"></activity>
     </application>
 
