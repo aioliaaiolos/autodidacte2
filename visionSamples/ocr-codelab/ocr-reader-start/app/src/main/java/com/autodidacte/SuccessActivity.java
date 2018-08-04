@@ -11,22 +11,40 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import java.util.Hashtable;
 import java.util.Locale;
 
 public class SuccessActivity extends AppCompatActivity {
 
     private TextToSpeech tts;
+    static Hashtable<Character, Integer> charToId = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if(charToId == null)
+        {
+            initMapping();
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_success);
 
         ImageButton resultButton = (ImageButton)findViewById(R.id.newbutton);
         Intent currentIntent = getIntent();
         String result = currentIntent.getStringExtra("result");
-        if(result.equals("success"))
-            resultButton.setBackgroundResource(R.drawable.valider);
+        String currentItem = currentIntent.getStringExtra("currentItem");
+        if(result.equals("success")) {
+
+            if(false && (GameEngine.getGameType() == GameEngine.GameType.eTrouverMot)) {
+                if(currentItem.length() > 0) {
+                    Character c = currentItem.charAt(0);
+                    int res = charToId.get(c);
+                    int res2 = R.drawable.w;
+                    resultButton.setBackgroundResource(charToId.get(c));
+                }
+            }
+            else
+                resultButton.setBackgroundResource(R.drawable.valider);
+        }
         else
             resultButton.setBackgroundResource(R.drawable.error);
 
@@ -50,15 +68,44 @@ public class SuccessActivity extends AppCompatActivity {
         tts.setLanguage(Locale.FRANCE);
 
         Utils.Sleep(1000);
-
-
-        ///
     }
 
     public void clickNew(View v)
     {
         //Toast.makeText(this, "Show some text on the screen.", Toast.LENGTH_LONG).show();
+        setResult(1, getIntent());
         finish();
        // Intent capture = new Intent(OcrCaptureActivity.this, SuccessActivity.class)
+    }
+
+    static void initMapping()
+    {
+        charToId = new Hashtable<Character, Integer>();
+        charToId.put('a', R.drawable.a);
+        charToId.put('b', R.drawable.b);
+        charToId.put('c', R.drawable.c);
+        charToId.put('d', R.drawable.d);
+        charToId.put('e', R.drawable.e);
+        charToId.put('f', R.drawable.f);
+        charToId.put('g', R.drawable.g);
+        charToId.put('h', R.drawable.h);
+        charToId.put('i', R.drawable.i);
+        charToId.put('j', R.drawable.j);
+        charToId.put('k', R.drawable.k);
+        charToId.put('l', R.drawable.l);
+        charToId.put('m', R.drawable.m);
+        charToId.put('n', R.drawable.n);
+        charToId.put('o', R.drawable.o);
+        charToId.put('p', R.drawable.p);
+        charToId.put('q', R.drawable.q);
+        charToId.put('r', R.drawable.r);
+        charToId.put('s', R.drawable.s);
+        charToId.put('t', R.drawable.t);
+        charToId.put('u', R.drawable.u);
+        charToId.put('v', R.drawable.v);
+        charToId.put('w', R.drawable.w);
+        charToId.put('x', R.drawable.x);
+        //charToId.put('y', R.drawable.y);
+        charToId.put('z', R.drawable.z);
     }
 }

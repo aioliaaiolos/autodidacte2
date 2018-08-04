@@ -472,10 +472,13 @@ public class GameEngine {
         editor.commit();
         String test = prefs.getString(wordFound, "");
 
-        String sentence = "Bravo, " + wordFound + " commence bien par " + currentItem() + " ! ";
+        String item = currentItem();
+
+        String sentence = "Bravo, " + wordFound + " commence bien par " + item + " ! ";
         Intent successActivity = new Intent(_questionActivity, SuccessActivity.class);
         successActivity.putExtra("sentence", sentence);
         successActivity.putExtra("result", "success");
+        successActivity.putExtra("currentItem", item);
         _questionActivity.startActivityForResult(successActivity, SUCCESS_ACTIVITY);
     }
 

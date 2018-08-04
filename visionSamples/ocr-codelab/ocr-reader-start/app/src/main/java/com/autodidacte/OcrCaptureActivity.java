@@ -149,7 +149,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             if (GameEngine.getGameType() == GameEngine.GameType.eTrouverMot) {
                 if (!rightWord.isEmpty()) {
                     GameEngine.onSuccess(rightWord);
-                    finish();
+                    //finish();
                 } else if (!possibleWord.isEmpty()) {
                     GameEngine.onFail(possibleWord, ExpectedWord);
                 }
@@ -325,6 +325,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
      * Suppressing InlinedApi since there is a check that the minimum version is met before using
      * the constant.
      */
+    boolean _justCreated = false;
     @SuppressLint("InlinedApi")
     private void createCameraSource(boolean autoFocus, boolean useFlash) {
         Context context = getApplicationContext();
@@ -364,6 +365,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                         .setFlashMode(useFlash ? Camera.Parameters.FLASH_MODE_TORCH : null)
                         .setFocusMode(autoFocus ? Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO : null)
                         .build();
+        _justCreated = true;
     }
 
     /**
@@ -371,8 +373,18 @@ public final class OcrCaptureActivity extends AppCompatActivity {
      */
     @Override
     protected void onResume() {
-        super.onResume();
-        startCameraSource();
+        if(!_justCreated) {
+            super.onResume();
+            startCameraSource();
+        }
+        else
+            _justCreated = false;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        finish();
     }
 
     /**
