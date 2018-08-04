@@ -53,7 +53,7 @@ public class GameEngine {
     static private TextToSpeech tts;
     static private OcrDetectorProcessor _detector = null;
     static private GameType _gameType;
-    static boolean _firstTime = true;
+    static private boolean _firstTime = true;
     static boolean _onReturnBack = false;
     private static boolean _onTap = false;
     static int MAX_LEVEL = 3;
@@ -66,6 +66,10 @@ public class GameEngine {
     static public boolean returnToAlphabetActvity = false;
 
 
+    public static void setFirstTime()
+    {
+        _firstTime = true;
+    }
 
     public static void init(Activity questionActivity)
     {

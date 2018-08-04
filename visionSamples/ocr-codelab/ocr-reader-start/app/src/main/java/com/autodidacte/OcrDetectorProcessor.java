@@ -35,13 +35,14 @@ import java.util.Vector;
 public class OcrDetectorProcessor implements Detector.Processor<TextBlock> {
 
     private boolean _debugInfos = false;
-
     private boolean _justOpened = true;
+    private boolean _mustFinish = false;
 
     public interface ITextDetectCallback
     {
         public boolean Execute(Vector<String> strings);
         public void ExecuteFirstTime();
+        public void finish();
     }
 
     private ITextDetectCallback m_detectionCallback = null;
@@ -57,28 +58,33 @@ public class OcrDetectorProcessor implements Detector.Processor<TextBlock> {
 
     @Override
     public void receiveDetections(Detector.Detections<TextBlock> detections) {
-        if (_justOpened) {
-            m_detectionCallback.ExecuteFirstTime();
-            _justOpened = false;
-        }
+        if(_mustFinish)
+            m_detectionCallback.finish();
+        else {
 
-        if(_waitingForDetection) {
-            graphicOverlay.clear();
-            SparseArray<TextBlock> items = detections.getDetectedItems();
-            if (items.size() > 0) {
-                Vector<String> strings = new Vector<String>();
-                for (int i = 0; i < items.size(); ++i) {
-                    TextBlock item = items.valueAt(i);
-                    if (item != null && item.getValue() != null) {
-                        strings.add(item.getValue());
-                        Log.d("Processor", "Text detected! " + item.getValue());
-                        OcrGraphic graphic = new OcrGraphic(graphicOverlay, item);
-                        if(_debugInfos == true)
-                            graphicOverlay.add(graphic);
+            if (_justOpened) {
+                m_detectionCallback.ExecuteFirstTime();
+                _justOpened = false;
+            }
+
+            if (_waitingForDetection) {
+                graphicOverlay.clear();
+                SparseArray<TextBlock> items = detections.getDetectedItems();
+                if (items.size() > 0) {
+                    Vector<String> strings = new Vector<String>();
+                    for (int i = 0; i < items.size(); ++i) {
+                        TextBlock item = items.valueAt(i);
+                        if (item != null && item.getValue() != null) {
+                            strings.add(item.getValue());
+                            Log.d("Processor", "Text detected! " + item.getValue());
+                            OcrGraphic graphic = new OcrGraphic(graphicOverlay, item);
+                            if (_debugInfos == true)
+                                graphicOverlay.add(graphic);
+                        }
                     }
+                    if (m_detectionCallback != null)
+                        m_detectionCallback.Execute(strings);
                 }
-                if (m_detectionCallback != null)
-                    m_detectionCallback.Execute(strings);
             }
         }
     }
@@ -91,6 +97,11 @@ public class OcrDetectorProcessor implements Detector.Processor<TextBlock> {
     public void setDetectionCallback(ITextDetectCallback callback)
     {
         m_detectionCallback = callback;
+    }
+
+    void mustFinish()
+    {
+        _mustFinish = true;
     }
 
     // TODO:  Once this implements Detector.Processor<TextBlock>, implement the abstract methods.

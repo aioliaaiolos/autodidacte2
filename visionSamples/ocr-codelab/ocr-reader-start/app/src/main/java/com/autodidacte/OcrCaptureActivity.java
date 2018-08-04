@@ -90,9 +90,8 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
     private boolean _onTap = false;
     private int _flushDetectionBuffer = 0;
-
-
     private OcrDetectorProcessor m_Detector;
+    boolean _mustFinish = false;
 
     @Override
     public void onBackPressed()
@@ -108,54 +107,64 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
         }
 
-        public boolean Execute(Vector<String> strings) {
-            if (_flushDetectionBuffer > 0) {
-                _flushDetectionBuffer--;
-                return true;
-            }
+        public void finish()
+        {
+            OcrCaptureActivity.this.finish();
+        }
 
-            String rightWord = "";
-            String existingWord = "";
-            String possibleWord = "";
-            String ExpectedWord = "";
-            boolean trouve = false;
-            ExpectedWord = GameEngine.wordFromLetter(GameEngine.currentItem().charAt(0));
-            for (int i = 0; i < strings.size(); i++) {
-                String s = strings.elementAt(i);
-                if (GameEngine.getGameType() == GameEngine.GameType.eTrouverMot) {
-                    s = s.toLowerCase();
-                    char c = s.charAt(0);
-                    String wfl = GameEngine.wordFromLetter(c);
-                    if (wfl.equals(s))
-                        possibleWord = s;
-                    if (s.equals(ExpectedWord)) {
-                        rightWord = ExpectedWord;
-                        m_Detector._waitingForDetection = false;
-                        break;
-                    }
+        public boolean Execute(Vector<String> strings) {
+            if(_mustFinish) {
+                _mustFinish = false;
+                finish();
+            }
+            else {
+
+                if (_flushDetectionBuffer > 0) {
+                    _flushDetectionBuffer--;
+                    return true;
                 }
-                else if(GameEngine.getGameType() == GameEngine.GameType.eTrouverLettre) {
-                    if(s.length() == 1) {
-                        String sCurrent = String.valueOf(GameEngine.currentItem());
-                        if (s.equals(sCurrent)) {
+
+                String rightWord = "";
+                String existingWord = "";
+                String possibleWord = "";
+                String ExpectedWord = "";
+                boolean trouve = false;
+                ExpectedWord = GameEngine.wordFromLetter(GameEngine.currentItem().charAt(0));
+                for (int i = 0; i < strings.size(); i++) {
+                    String s = strings.elementAt(i);
+                    if (GameEngine.getGameType() == GameEngine.GameType.eTrouverMot) {
+                        s = s.toLowerCase();
+                        char c = s.charAt(0);
+                        String wfl = GameEngine.wordFromLetter(c);
+                        if (wfl.equals(s))
+                            possibleWord = s;
+                        if (s.equals(ExpectedWord)) {
+                            rightWord = ExpectedWord;
                             m_Detector._waitingForDetection = false;
-                            trouve = true;
                             break;
+                        }
+                    } else if (GameEngine.getGameType() == GameEngine.GameType.eTrouverLettre) {
+                        if (s.length() == 1) {
+                            String sCurrent = String.valueOf(GameEngine.currentItem());
+                            if (s.equals(sCurrent)) {
+                                m_Detector._waitingForDetection = false;
+                                trouve = true;
+                                break;
+                            }
                         }
                     }
                 }
-            }
 
-            if (GameEngine.getGameType() == GameEngine.GameType.eTrouverMot) {
-                if (!rightWord.isEmpty()) {
-                    GameEngine.onSuccess(rightWord);
-                } else if (!possibleWord.isEmpty()) {
-                    GameEngine.onFail(possibleWord, ExpectedWord);
+                if (GameEngine.getGameType() == GameEngine.GameType.eTrouverMot) {
+                    if (!rightWord.isEmpty()) {
+                        GameEngine.onSuccess(rightWord);
+                    } else if (!possibleWord.isEmpty()) {
+                        GameEngine.onFail(possibleWord, ExpectedWord);
+                    }
+                } else if (GameEngine.getGameType() == GameEngine.GameType.eTrouverLettre) {
+                    if (trouve)
+                        GameEngine.onLetterSuccess(GameEngine.currentItem().charAt(0));
                 }
-            }
-            else if(GameEngine.getGameType() == GameEngine.GameType.eTrouverLettre) {
-                if(trouve)
-                    GameEngine.onLetterSuccess(GameEngine.currentItem().charAt(0));
             }
             return true;
         }
@@ -168,6 +177,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
+        _mustFinish = false;
 
         GameEngine.setOcrCaptureActivity(this);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -367,12 +377,11 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         startCameraSource();
     }
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
         int i = resultCode;
-        finish();
+        m_Detector.mustFinish();
     }
 
     /**

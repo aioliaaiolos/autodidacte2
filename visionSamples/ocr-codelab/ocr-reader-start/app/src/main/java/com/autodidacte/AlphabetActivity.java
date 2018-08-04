@@ -173,6 +173,7 @@ public class AlphabetActivity extends Activity {
     protected void onResume()
     {
         super.onResume();
+        GameEngine.setFirstTime();
         if (GameEngine.returnToAlphabetActvity)
             GameEngine.returnToAlphabetActvity = false;
 
