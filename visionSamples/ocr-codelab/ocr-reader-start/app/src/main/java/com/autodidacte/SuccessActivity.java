@@ -3,6 +3,7 @@ package com.autodidacte;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,21 +33,28 @@ public class SuccessActivity extends AppCompatActivity {
         Intent currentIntent = getIntent();
         String result = currentIntent.getStringExtra("result");
         String currentItem = currentIntent.getStringExtra("currentItem");
-        if(result.equals("success")) {
+       // if(result.equals("success")) {
 
-            if(false && (GameEngine.getGameType() == GameEngine.GameType.eTrouverMot)) {
+        // test
+
+
+        // fin test
+
+            if(GameEngine.getGameType() == GameEngine.GameType.eTrouverMot) {
                 if(currentItem.length() > 0) {
                     Character c = currentItem.charAt(0);
-                    int res = charToId.get(c);
-                    int res2 = R.drawable.w;
-                    resultButton.setBackgroundResource(charToId.get(c));
+                    Object o = charToId.get(c);
+                    if(o != null) {
+                        int res = (int)o;
+                        resultButton.setBackgroundResource(res);
+                    }
                 }
             }
             else
                 resultButton.setBackgroundResource(R.drawable.valider);
-        }
-        else
-            resultButton.setBackgroundResource(R.drawable.error);
+
+        //} else
+        //    resultButton.setBackgroundResource(R.drawable.error);
 
         TextToSpeech.OnInitListener listener =
                 new TextToSpeech.OnInitListener() {
@@ -59,6 +67,23 @@ public class SuccessActivity extends AppCompatActivity {
                             String sentence = currentIntent.getStringExtra("sentence");
                             tts.setSpeechRate(0.8f);
                             tts.speak(sentence, TextToSpeech.QUEUE_ADD, null, "DEFAULT");
+                            tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                                @Override
+                                public void onStart(String utteranceId) {
+
+                                }
+
+                                @Override
+                                public void onDone(String utteranceId) {
+                                    setResult(1, getIntent());
+                                    finish();
+                                }
+
+                                @Override
+                                public void onError(String utteranceId) {
+
+                                }
+                            });
                         } else {
                             Log.d("TTS", "Error starting the text to speech engine.");
                         }
@@ -69,14 +94,14 @@ public class SuccessActivity extends AppCompatActivity {
 
         Utils.Sleep(1000);
     }
-
+/*
     public void clickNew(View v)
     {
         //Toast.makeText(this, "Show some text on the screen.", Toast.LENGTH_LONG).show();
         setResult(1, getIntent());
         finish();
        // Intent capture = new Intent(OcrCaptureActivity.this, SuccessActivity.class)
-    }
+    }*/
 
     static void initMapping()
     {
@@ -105,7 +130,7 @@ public class SuccessActivity extends AppCompatActivity {
         charToId.put('v', R.drawable.v);
         charToId.put('w', R.drawable.w);
         charToId.put('x', R.drawable.x);
-        //charToId.put('y', R.drawable.y);
+        charToId.put('y', R.drawable.z);
         charToId.put('z', R.drawable.z);
     }
 }

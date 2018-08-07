@@ -114,17 +114,17 @@ public class MenuActivity extends Activity {
             x = 2500;
             y = 1900;
             w = 2000;
-            h = 4500;
+            h = 4700;
         } else if (type == GameEngine.GameType.eTrouverLettre) {
             x = 1600;
             y = 2000;
             w = 3700;
-            h = 4300;
+            h = 4400;
         } else if (type == GameEngine.GameType.eTrouverPremiereLettre) {
             x = 3000;
-            y = 1200;
-            w = 2500;
-            h = 4000;
+            y = 1250;
+            w = 2400;
+            h = 4600;
         }
         Rectangle rect = new Rectangle(x, y, w, h);
         return rect;

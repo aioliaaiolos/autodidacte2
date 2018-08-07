@@ -28,9 +28,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
-import android.media.AudioManager;
 import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -49,14 +47,11 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.autodidacte.ui.camera.CameraSource;
 import com.autodidacte.ui.camera.CameraSourcePreview;
 import com.autodidacte.ui.camera.GraphicOverlay;
-import com.google.android.gms.vision.text.TextBlock;
 import com.google.android.gms.vision.text.TextRecognizer;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Locale;
 import java.util.Vector;
 
 /**
@@ -107,9 +102,23 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
         }
 
+        public void onReceiveDetections()
+        {
+            if(_mustFinish)
+                OcrCaptureActivity.this.finish();
+        }
+
+        int _counter = 1;
         public void finish()
         {
-            OcrCaptureActivity.this.finish();
+            _mustFinish = true;
+
+            do {
+                m_Detector.release();
+                OcrCaptureActivity.this.finish();
+                //Utils.Sleep(200);
+            }
+            while(_counter-- > 0);
         }
 
         public boolean Execute(Vector<String> strings) {
@@ -211,12 +220,9 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 Snackbar.LENGTH_LONG)
                 .show();
 
-        AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-        int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, max * 3 / 2, AudioManager.FLAG_SHOW_UI);
+        Utils.setAudioVolume(50, this);
 
         m_Detector._waitingForDetection = true;
-
     }
 
 
@@ -381,7 +387,8 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
         int i = resultCode;
-        m_Detector.mustFinish();
+        _mustFinish = true;
+        //m_Detector.mustFinish();
     }
 
     /**
@@ -492,27 +499,18 @@ public final class OcrCaptureActivity extends AppCompatActivity {
      * @param rawY - the raw position of the tap.
      * @return true if the tap was on a TextBlock
      */
+    int tapCount = 0;
     private boolean onTap(float rawX, float rawY) {
         // TODO: Speak the text when the user taps on screen.
-        OcrGraphic graphic = graphicOverlay.getGraphicAtLocation(rawX, rawY);
-        TextBlock text = null;
-        if (graphic != null) {
-            text = graphic.getTextBlock();
-            if (text != null && text.getValue() != null) {
-                Log.d(TAG, "text data is being spoken! " + text.getValue());
-                // TODO: Speak the string.
-                GameEngine.speak(text.getValue());
-            } else {
-                Log.d(TAG, "text data is null");
-            }
-        } else {
-            Log.d(TAG, "no text detected");
+        tapCount++;
+        if(tapCount > 0) {
+            _onTap = true;
+            //GameEngine.askNextItem();
+            finish();
+            _onTap = false;
+            tapCount = 0;
         }
-        _onTap = true;
-        GameEngine.askNextItem();
-        _onTap = false;
-
-        return text != null;
+        return true;
     }
 
     private class CaptureGestureListener extends GestureDetector.SimpleOnGestureListener {

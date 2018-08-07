@@ -1,11 +1,10 @@
 package com.autodidacte;
 
 import android.app.Activity;
+import android.content.Context;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.SystemClock;
-import android.widget.Button;
-import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
 
@@ -24,6 +23,13 @@ public class Utils {
    // static MediaPlayer.OnPreparedListener _onPreparedListener = null;
     static OnCompletionListener _onCompletionListener;
     static int _currentVideoId = -1;
+
+    static void setAudioVolume(int volumePercent, Activity activity)
+    {
+        AudioManager audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
+        int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, max * volumePercent / 100, AudioManager.FLAG_SHOW_UI);
+    }
 
 
     static void setOnVideoReadyCallback(IOnVideoReadyCallback callback)

@@ -1,10 +1,8 @@
 package com.autodidacte;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.AudioManager;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
@@ -116,9 +114,7 @@ public class GameEngine {
             _notationFirstLetter = initNotationLetter();
             _firstTime = true;
 
-            AudioManager audioManager = (AudioManager) _questionActivity.getSystemService(Context.AUDIO_SERVICE);
-            int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, max / 2, AudioManager.FLAG_SHOW_UI);
+            Utils.setAudioVolume(50, _questionActivity);
             _init = true;
         }
     }
@@ -479,12 +475,12 @@ public class GameEngine {
         String item = currentItem();
 
         String sentence = "Bravo, " + wordFound + " commence bien par " + item + " ! ";
-        Intent sucess = new Intent(_ocrCaptureActivity, SuccessActivity.class);
-        sucess.putExtra("sentence", sentence);
-        sucess.putExtra("result", "success");
-        sucess.putExtra("currentItem", item);
+        Intent successActivity = new Intent(_ocrCaptureActivity, SuccessActivity.class);
+        successActivity.putExtra("sentence", sentence);
+        successActivity.putExtra("result", "success");
+        successActivity.putExtra("currentItem", item);
 
-        _ocrCaptureActivity.startActivityForResult(sucess, SUCCESS_ACTIVITY);        
+        _ocrCaptureActivity.startActivityForResult(successActivity, SUCCESS_ACTIVITY);
     }
 
     static boolean isLow(char c)
@@ -495,12 +491,14 @@ public class GameEngine {
     public static void onFail(String wrongWord, String ExpectedWord)
     {
         if(_detector != null)
-        _detector._waitingForDetection = false;
+            _detector._waitingForDetection = false;
+        String item = currentItem();
         String sentence = "Tu tes trompé, " + wrongWord + " ne commence pas par, " + currentItem() +
                 ", le bon mot etait " + ExpectedWord;
         Intent successActivity = new Intent(_questionActivity, SuccessActivity.class);
         successActivity.putExtra("sentence", sentence);
         successActivity.putExtra("result", "error");
+        successActivity.putExtra("currentItem", item);
         _questionActivity.startActivityForResult(successActivity, SUCCESS_ACTIVITY);
     }
 

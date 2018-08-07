@@ -9,7 +9,7 @@
     <ImageButton
         android:id="@+id/newbutton"
         android:layout_width="375dp"
-        android:layout_height="408dp"
+        android:layout_height="500dp"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:layout_centerInParent="true"

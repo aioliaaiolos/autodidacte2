@@ -43,6 +43,7 @@ public class OcrDetectorProcessor implements Detector.Processor<TextBlock> {
         public boolean Execute(Vector<String> strings);
         public void ExecuteFirstTime();
         public void finish();
+        public void onReceiveDetections();
     }
 
     private ITextDetectCallback m_detectionCallback = null;
@@ -58,6 +59,7 @@ public class OcrDetectorProcessor implements Detector.Processor<TextBlock> {
 
     @Override
     public void receiveDetections(Detector.Detections<TextBlock> detections) {
+        m_detectionCallback.onReceiveDetections();
         if(_mustFinish)
             m_detectionCallback.finish();
         else {
