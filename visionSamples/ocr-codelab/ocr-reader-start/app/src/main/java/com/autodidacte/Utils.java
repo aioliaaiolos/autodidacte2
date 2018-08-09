@@ -53,26 +53,6 @@ public class Utils {
         if (mVideo != null) {
             Uri uri = Uri.parse("android.resource://" + activity.getPackageName() + "/" + videoId);
             mVideo.setVideoURI(uri);
-            /*
-            if(_onPreparedListener == null)
-                _onPreparedListener = new MediaPlayer.OnPreparedListener() {
-                    public void onPrepared(MediaPlayer mp) {
-                        int duration = mVideo.getDuration();
-                        int w = mVideo.getWidth();
-                        int h = mVideo.getHeight();
-
-                        //mVideo.setLayoutParams(new RelativeLayout.LayoutParams(w, h));
-                        int w2 = mp.getVideoWidth();
-                        int h2 = mp.getVideoHeight();
-
-                        durat = duration;
-                        mVideo.requestFocus();
-                        mVideo.start();
-                        if(_videoReadyCallback != null)
-                            _videoReadyCallback.execute(mVideo);
-                    }
-                };
-                */
 
             mVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
@@ -86,9 +66,6 @@ public class Utils {
                     int w2 = mp.getVideoWidth();
                     int h2 = mp.getVideoHeight();
 
-                    //durat = duration;
-                    //mVideo.requestFocus();
-                    //mVideo.start();
                     mp.start();
                     if(_videoReadyCallback != null)
                         _videoReadyCallback.execute(mVideo);

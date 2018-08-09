@@ -1,10 +1,13 @@
 package com.autodidacte;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -15,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Set;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -411,8 +415,8 @@ public class GameEngine {
                 sentence = "Lettre suivante, trouve moi la lettre, " + c + " ?";
         }
 
-        tts.speak(sentence, TextToSpeech.QUEUE_ADD, null, "DEFAULT");
-        tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+        int ret = tts.speak(sentence, TextToSpeech.QUEUE_ADD, null, "DEFAULT");
+        int listenerRet = tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
             @Override
             public void onStart(String utteranceId) {
                 int test = 0;
@@ -423,6 +427,7 @@ public class GameEngine {
             public void onDone(String utteranceId) {
                 if(_detector != null)
                     _detector._waitingForDetection = true;
+                Utils.Sleep(500);
                 launchOcrCapture();
             }
 
@@ -432,12 +437,6 @@ public class GameEngine {
                 test = test;
             }
         });
-/*
-        if (!_onTap && !_onReturnBack) {
-            Utils.Sleep(4000);
-            if(_detector != null)
-                _detector._waitingForDetection = true;
-        }*/
     }
 
     public static void onLetterSuccess(char c)
@@ -459,9 +458,6 @@ public class GameEngine {
 
     public static void onSuccess(String wordFound)
     {
-        boolean version1 = false;
-        boolean version2 = false;
-        boolean version3 = true;
         SharedPreferences prefs = _questionActivity.getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         String level = prefs.getString(wordFound, "");
@@ -490,12 +486,11 @@ public class GameEngine {
 
     public static void onFail(String wrongWord, String ExpectedWord)
     {
-        if(_detector != null)
-            _detector._waitingForDetection = false;
         String item = currentItem();
+
         String sentence = "Tu tes trompé, " + wrongWord + " ne commence pas par, " + currentItem() +
                 ", le bon mot etait " + ExpectedWord;
-        Intent successActivity = new Intent(_questionActivity, SuccessActivity.class);
+        Intent successActivity = new Intent(_ocrCaptureActivity, SuccessActivity.class);
         successActivity.putExtra("sentence", sentence);
         successActivity.putExtra("result", "error");
         successActivity.putExtra("currentItem", item);
@@ -504,9 +499,7 @@ public class GameEngine {
 
     public static void retour(Activity parent, View view)
     {
-        //Utils.setOnVideoReadyCallback(null);
         String name = parent.getLocalClassName();
-        //if(parent.getLocalClassName())
         parent.finish();
     }
 

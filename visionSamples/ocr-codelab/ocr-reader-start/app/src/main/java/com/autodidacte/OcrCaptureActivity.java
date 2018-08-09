@@ -503,7 +503,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     private boolean onTap(float rawX, float rawY) {
         // TODO: Speak the text when the user taps on screen.
         tapCount++;
-        if(tapCount > 0) {
+        if(tapCount > 1) {
             _onTap = true;
             //GameEngine.askNextItem();
             finish();

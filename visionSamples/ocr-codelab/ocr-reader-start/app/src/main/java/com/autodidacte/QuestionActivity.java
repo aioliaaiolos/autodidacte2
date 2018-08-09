@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.VideoView;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -84,7 +85,18 @@ public class QuestionActivity extends Activity {
         }
     };
 
-    GameEngine.OnVideoReadyCallback _onVideoReadyCallback = null;
+    class OnVideoReadyCallback implements Utils.IOnVideoReadyCallback
+    {
+        public void execute(VideoView video)
+        {
+            GameEngine.configureGeneralButtons(QuestionActivity.this, video.getWidth(),
+                    video.getHeight(), R.id.retour, R.id.options, R.id.aide);
+            video.setOnCompletionListener(null);
+            GameEngine.askNextItem();
+        }
+    }
+
+    OnVideoReadyCallback _onVideoReadyCallback = null;
 
     class InitCallbackQuestion implements GameEngine.InitCallback
     {
@@ -93,7 +105,7 @@ public class QuestionActivity extends Activity {
             int video = GameEngine.getVideoFromGameType(GameEngine.getGameType(), QuestionActivity.this);
 
             if(_onVideoReadyCallback == null)
-                _onVideoReadyCallback = new GameEngine.OnVideoReadyCallback();
+                _onVideoReadyCallback = new OnVideoReadyCallback();
 
             Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
             Utils.stopVideo();

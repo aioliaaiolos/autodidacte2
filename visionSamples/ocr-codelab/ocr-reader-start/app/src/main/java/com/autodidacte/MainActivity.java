@@ -20,18 +20,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     boolean mCredentialsValidated = false;
-    private static final int RC_HANDLE_CAMERA_PERM = 2;
+	private static final int RC_HANDLE_CAMERA_PERM = 2;
 
-/*
-    class OnRequestPermissionResultCallback implements ActivityCompat.OnRequestPermissionsResultCallback
-    {
-        @Override
-        public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
-        {
-            Intent apprendreAlphabet = new Intent(MainActivity.this, AlphabetActivity.class);
-            startActivity(apprendreAlphabet);
-        }
-    }*/
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
