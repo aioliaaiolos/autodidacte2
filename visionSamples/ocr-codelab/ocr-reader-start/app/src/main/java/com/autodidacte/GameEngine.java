@@ -1,24 +1,27 @@
 package com.autodidacte;
 
-import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
+import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Locale;
-import java.util.Set;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -30,6 +33,7 @@ public class GameEngine {
     public static int QUESTION_ACTIVITY = 4;
     public static int SUCCESS_ACTIVITY = 5;
     public static int CAPTURE_ACTIVITY = 6;
+    public static int INIT_MISSING_LANGUAGE = 1;
 
     public enum GameType
     {
@@ -38,10 +42,12 @@ public class GameEngine {
         eTrouverMot;
     }
 
-    public interface InitCallback
+    public interface InitTextToSpeechCallback
     {
         void execute();
     }
+
+
 
     static Hashtable<Integer, ArrayList<String>> _notationWord;
     static Hashtable<Integer, ArrayList<Character>> _notationLetter;
@@ -64,8 +70,13 @@ public class GameEngine {
     static Activity _ocrCaptureActivity = null;
     static Activity _questionActivity = null;
     static boolean _init = false;
-    static InitCallback _initCallback;
+    static InitTextToSpeechCallback _initCallback;
     static public boolean returnToAlphabetActvity = false;
+
+    public static Locale currentLanguage()
+    {
+        return Locale.FRANCE;
+    }
 
 
     public static void setFirstTime()
@@ -73,57 +84,68 @@ public class GameEngine {
         _firstTime = true;
     }
 
-    public static void init(Activity questionActivity)
+    public static TextToSpeech createTextToSpeech(Activity activity)
     {
-        if(!_init) {
-            _questionActivity = questionActivity;
-            _currentWordIndex = -1;
-            _currentLetterIndex = -1;
-            _currentLevel = 0;
-            // Set good defaults for capturing text.
-            boolean autoFocus = true;
-            boolean useFlash = true;
-
-            SharedPreferences prefs = questionActivity.getPreferences(MODE_PRIVATE);
-            SharedPreferences.Editor editor = prefs.edit();
-
-
-            // TODO: Set up the Text To Speech engine.
-            TextToSpeech.OnInitListener listener =
-                    new TextToSpeech.OnInitListener() {
-                        @Override
-                        public void onInit(final int status) {
-                            if (status == TextToSpeech.SUCCESS) {
-                                Log.d("TTS", "Text to speech engine started successfully.");
-                                tts.setLanguage(Locale.FRANCE);
-                                _init = true;
-                                if(_initCallback != null)
-                                    _initCallback.execute();
-                            } else {
-                                Log.d("TTS", "Error starting the text to speech engine.");
-                            }
-                        }
-                    };
-            tts = new TextToSpeech(questionActivity.getApplicationContext(), listener);
-
-            if (_letterToWord == null)
-                _letterToWord = new Hashtable<Character, String>();
-
-            if (_letterToWord.size() == 0) {
-                initLetterToWord();
+        final Activity act = activity;
+        tts = new TextToSpeech(activity.getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(final int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    Log.d("TTS", "Text to speech engine started successfully.");
+                    int lang = tts.setLanguage(GameEngine.currentLanguage());
+                    if(lang == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        Intent installIntent = new Intent();
+                        installIntent.setAction(
+                                TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                        act.startActivityForResult(installIntent, INIT_MISSING_LANGUAGE);
+                    }
+                    else {
+                        _init = true;
+                        if (_initCallback != null)
+                            _initCallback.execute();
+                    }
+                } else {
+                    Log.d("TTS", "Error starting the text to speech engine.");
+                }
             }
-
-            initNotationWords();
-            _notationLetter = initNotationLetter();
-            _notationFirstLetter = initNotationLetter();
-            _firstTime = true;
-
-            Utils.setAudioVolume(50, _questionActivity);
-            _init = true;
-        }
+        });
+        return tts;
     }
 
-    public static void setInitCallback(InitCallback callback)
+
+    public static void init(Activity questionActivity)
+    {
+        _questionActivity = questionActivity;
+        _currentWordIndex = -1;
+        _currentLetterIndex = -1;
+        _currentLevel = 0;
+        // Set good defaults for capturing text.
+        boolean autoFocus = true;
+        boolean useFlash = true;
+
+        SharedPreferences prefs = questionActivity.getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        // TODO: Set up the Text To Speech engine.
+        tts = createTextToSpeech(questionActivity);
+
+        if (_letterToWord == null)
+            _letterToWord = new Hashtable<Character, String>();
+
+        if (_letterToWord.size() == 0) {
+            initLetterToWord();
+        }
+
+        initNotationWords();
+        _notationLetter = initNotationLetter();
+        _notationFirstLetter = initNotationLetter();
+        _firstTime = true;
+
+        Utils.setAudioVolume(50, _questionActivity);
+        _init = true;
+    }
+
+    public static void setInitTextToSpeechCallback(InitTextToSpeechCallback callback)
     {
         _initCallback = callback;
     }
@@ -366,7 +388,7 @@ public class GameEngine {
 
     public static void askNextItem()
     {
-        tts.setLanguage(Locale.FRANCE);
+        tts.setLanguage(GameEngine.currentLanguage());
         String c;
         if(!_onTap){
             if(_detector != null)
@@ -494,7 +516,7 @@ public class GameEngine {
         successActivity.putExtra("sentence", sentence);
         successActivity.putExtra("result", "error");
         successActivity.putExtra("currentItem", item);
-        _questionActivity.startActivityForResult(successActivity, SUCCESS_ACTIVITY);
+        _ocrCaptureActivity.startActivityForResult(successActivity, SUCCESS_ACTIVITY);
     }
 
     public static void retour(Activity parent, View view)
@@ -549,7 +571,7 @@ public class GameEngine {
 
         Button arr[] = {retour, options, aide};
 
-        int color = 0xAA888888;
+        int color = 0x00888888;
         for(int i = 0; i < arr.length; i++)
         {
             Button b = arr[i];

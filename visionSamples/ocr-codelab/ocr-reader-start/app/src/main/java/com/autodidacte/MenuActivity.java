@@ -132,7 +132,7 @@ public class MenuActivity extends Activity {
 
     class OnVideoReadyCallback implements Utils.IOnVideoReadyCallback {
         public void execute(VideoView video) {
-            int color = 0xAA888888;
+            int color = 0x00888888;
             _bouton = (Button) findViewById(R.id.bouton);
             _bouton.setBackgroundColor(color);
             int wScreen = video.getWidth();

@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
@@ -21,6 +22,36 @@ public class MainActivity extends AppCompatActivity {
 
     boolean mCredentialsValidated = false;
 	private static final int RC_HANDLE_CAMERA_PERM = 2;
+    static int MY_DATA_CHECK_CODE = 1;
+
+    public void checkTextToSpeechLanguage()
+    {
+        GameEngine.createTextToSpeech(this);
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        if(requestCode == GameEngine.INIT_MISSING_LANGUAGE)
+        {
+            startAlphabetActivity();
+        }
+    }
+
+    void startAlphabetActivity()
+    {
+        Intent apprendreAlphabet = new Intent(MainActivity.this, AlphabetActivity.class);
+        startActivity(apprendreAlphabet);
+    }
+
+    class InitTextToSpeechCallback implements GameEngine.InitTextToSpeechCallback
+    {
+        @Override
+        public void execute()
+        {
+            MainActivity.this.startAlphabetActivity();
+        }
+    }
+
 
 
     @Override
@@ -28,8 +59,7 @@ public class MainActivity extends AppCompatActivity {
     {
         if(grantResults[0] != -1) {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-            Intent apprendreAlphabet = new Intent(MainActivity.this, AlphabetActivity.class);
-            startActivity(apprendreAlphabet);
+            checkTextToSpeechLanguage();
         }
         else
             finish();
@@ -60,11 +90,11 @@ public class MainActivity extends AppCompatActivity {
         int rc = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
 
         if (rc != PackageManager.PERMISSION_GRANTED) {
-            //if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
             final String[] permissions = new String[]{Manifest.permission.CAMERA};
             ActivityCompat.requestPermissions(this, permissions, RC_HANDLE_CAMERA_PERM);
-            //}
         } else {
+            GameEngine.setInitTextToSpeechCallback(new InitTextToSpeechCallback());
+            GameEngine.createTextToSpeech(this);
             SharedPreferences prefs = getPreferences(MODE_PRIVATE);
 
             boolean flush = false;
@@ -134,9 +164,6 @@ public class MainActivity extends AppCompatActivity {
                         });
                 dlgAlert.setCancelable(true);
                 dlgAlert.create().show();
-            } else {
-                Intent apprendreAlphabet = new Intent(MainActivity.this, AlphabetActivity.class);
-                startActivity(apprendreAlphabet);
             }
         }
     }

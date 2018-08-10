@@ -98,7 +98,7 @@ public class QuestionActivity extends Activity {
 
     OnVideoReadyCallback _onVideoReadyCallback = null;
 
-    class InitCallbackQuestion implements GameEngine.InitCallback
+    class InitCallbackQuestion implements GameEngine.InitTextToSpeechCallback
     {
         public void execute()
         {
@@ -125,7 +125,7 @@ public class QuestionActivity extends Activity {
 
         if(_initCallbackQuestion == null)
             _initCallbackQuestion = new InitCallbackQuestion();
-        GameEngine.setInitCallback(_initCallbackQuestion);
+        GameEngine.setInitTextToSpeechCallback(_initCallbackQuestion);
 
         GameEngine.init(this);
 

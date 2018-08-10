@@ -62,7 +62,7 @@ public class SuccessActivity extends AppCompatActivity {
                     public void onInit(final int status) {
                         if (status == TextToSpeech.SUCCESS) {
                             Log.d("TTS", "Text to speech engine started successfully.");
-                            tts.setLanguage(Locale.FRANCE);
+                            tts.setLanguage(GameEngine.currentLanguage());
                             Intent currentIntent = getIntent();
                             String sentence = currentIntent.getStringExtra("sentence");
                             tts.setSpeechRate(0.8f);
@@ -90,7 +90,7 @@ public class SuccessActivity extends AppCompatActivity {
                     }
                 };
         tts = new TextToSpeech(this.getApplicationContext(), listener);
-        tts.setLanguage(Locale.FRANCE);
+        tts.setLanguage(GameEngine.currentLanguage());
 
         Utils.Sleep(1000);
     }

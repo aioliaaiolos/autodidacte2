@@ -39,7 +39,7 @@ public class AlphabetActivity extends Activity {
 
             Button arr[] = {_trouverLettre, _trouverPremiereLettre, _trouverMot/*, _sortie, _options, _aide*/}; //new Button[6];
 
-            int color = 0xAA888888;
+            int color = 0x00888888;
             for(int i = 0; i < arr.length; i++)
             {
                 Button b = arr[i];
