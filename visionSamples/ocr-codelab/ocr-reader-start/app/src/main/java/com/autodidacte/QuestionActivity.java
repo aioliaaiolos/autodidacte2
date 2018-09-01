@@ -3,9 +3,11 @@ package com.autodidacte;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.VideoView;
@@ -100,16 +102,16 @@ public class QuestionActivity extends Activity {
 
     class InitCallbackQuestion implements GameEngine.InitTextToSpeechCallback
     {
-        public void execute()
+        public void execute(Activity activity)
         {
-            int video = GameEngine.getVideoFromGameType(GameEngine.getGameType(), QuestionActivity.this);
+            int video = GameEngine.getVideoFromGameType(GameEngine.getGameType(), activity);
 
             if(_onVideoReadyCallback == null)
                 _onVideoReadyCallback = new OnVideoReadyCallback();
 
             Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
             Utils.stopVideo();
-            Utils.playVideo(QuestionActivity.this, video);
+            Utils.playVideo(activity, video);
             mVisible = true;
         }
     }
@@ -123,11 +125,7 @@ public class QuestionActivity extends Activity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_test_fullscreen);
 
-        if(_initCallbackQuestion == null)
-            _initCallbackQuestion = new InitCallbackQuestion();
-        GameEngine.setInitTextToSpeechCallback(_initCallbackQuestion);
-
-        GameEngine.init(this);
+        GameEngine.init(this, new InitCallbackQuestion());
 
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
@@ -148,6 +146,18 @@ public class QuestionActivity extends Activity {
         findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
     }
 
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        if(requestCode == GameEngine.INIT_MISSING_LANGUAGE)
+        {
+            GameEngine._init = true;
+            if (GameEngine._initCallback != null)
+                GameEngine._initCallback.execute(GameEngine._currentActivity);
+        }
+    }
+
+
+
     @Override
     public void onResume() {
         super.onResume();
@@ -157,10 +167,10 @@ public class QuestionActivity extends Activity {
             Utils.stopVideo();
             finish();
         }
-        else {
+        else if(GameEngine._init) {
             if(_initCallbackQuestion == null)
                 _initCallbackQuestion = new InitCallbackQuestion();
-            _initCallbackQuestion.execute();
+            _initCallbackQuestion.execute(this);
         }
     }
 

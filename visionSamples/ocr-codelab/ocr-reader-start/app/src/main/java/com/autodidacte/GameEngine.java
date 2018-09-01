@@ -44,7 +44,7 @@ public class GameEngine {
 
     public interface InitTextToSpeechCallback
     {
-        void execute();
+        void execute(Activity activity);
     }
 
 
@@ -58,7 +58,7 @@ public class GameEngine {
     static private int _currentLetterIndex = -1;
     static private int _currentFirstLetterIndex = -1;
     static private int _currentFirstLetterLevel = 0;
-    static private TextToSpeech tts;
+    static public TextToSpeech tts;
     static private OcrDetectorProcessor _detector = null;
     static private GameType _gameType;
     static private boolean _firstTime = true;
@@ -72,10 +72,12 @@ public class GameEngine {
     static boolean _init = false;
     static InitTextToSpeechCallback _initCallback;
     static public boolean returnToAlphabetActvity = false;
+    static public Activity _currentActivity = null;
 
     public static Locale currentLanguage()
     {
         return Locale.FRANCE;
+        //return Locale.GERMAN;
     }
 
 
@@ -83,7 +85,7 @@ public class GameEngine {
     {
         _firstTime = true;
     }
-
+/*
     public static TextToSpeech createTextToSpeech(Activity activity)
     {
         final Activity act = activity;
@@ -110,11 +112,14 @@ public class GameEngine {
             }
         });
         return tts;
-    }
+    }*/
 
 
-    public static void init(Activity questionActivity)
+    public static void init(Activity questionActivity, InitTextToSpeechCallback initTextToSpeechCallback)
     {
+        // TODO: Set up the Text To Speech engine.
+        MainActivity.initTextToSpeech(questionActivity, initTextToSpeechCallback);
+
         _questionActivity = questionActivity;
         _currentWordIndex = -1;
         _currentLetterIndex = -1;
@@ -125,9 +130,6 @@ public class GameEngine {
 
         SharedPreferences prefs = questionActivity.getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-
-        // TODO: Set up the Text To Speech engine.
-        tts = createTextToSpeech(questionActivity);
 
         if (_letterToWord == null)
             _letterToWord = new Hashtable<Character, String>();
@@ -142,13 +144,24 @@ public class GameEngine {
         _firstTime = true;
 
         Utils.setAudioVolume(50, _questionActivity);
-        _init = true;
+
+
+        //_init = true;
     }
 
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        if(requestCode == GameEngine.INIT_MISSING_LANGUAGE)
+        {
+
+        }
+    }
+/*
     public static void setInitTextToSpeechCallback(InitTextToSpeechCallback callback)
     {
         _initCallback = callback;
-    }
+    }*/
 
     public static boolean isInit()
     {
@@ -388,7 +401,7 @@ public class GameEngine {
 
     public static void askNextItem()
     {
-        tts.setLanguage(GameEngine.currentLanguage());
+        int languageRet = tts.setLanguage(GameEngine.currentLanguage());
         String c;
         if(!_onTap){
             if(_detector != null)
@@ -437,7 +450,7 @@ public class GameEngine {
                 sentence = "Lettre suivante, trouve moi la lettre, " + c + " ?";
         }
 
-        int ret = tts.speak(sentence, TextToSpeech.QUEUE_ADD, null, "DEFAULT");
+        int speakRet = tts.speak(sentence, TextToSpeech.QUEUE_ADD, null, "DEFAULT");
         int listenerRet = tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
             @Override
             public void onStart(String utteranceId) {
