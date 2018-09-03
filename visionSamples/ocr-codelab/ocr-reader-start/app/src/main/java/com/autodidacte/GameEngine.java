@@ -1,24 +1,16 @@
 package com.autodidacte;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
-import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
-import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Locale;
@@ -33,6 +25,7 @@ public class GameEngine {
     public static int QUESTION_ACTIVITY = 4;
     public static int SUCCESS_ACTIVITY = 5;
     public static int CAPTURE_ACTIVITY = 6;
+    public static int CAPTURE_ACTIVITY2 = 7;
     public static int INIT_MISSING_LANGUAGE = 1;
 
     public enum GameType
@@ -85,34 +78,6 @@ public class GameEngine {
     {
         _firstTime = true;
     }
-/*
-    public static TextToSpeech createTextToSpeech(Activity activity)
-    {
-        final Activity act = activity;
-        tts = new TextToSpeech(activity.getApplicationContext(), new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(final int status) {
-                if (status == TextToSpeech.SUCCESS) {
-                    Log.d("TTS", "Text to speech engine started successfully.");
-                    int lang = tts.setLanguage(GameEngine.currentLanguage());
-                    if(lang == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        Intent installIntent = new Intent();
-                        installIntent.setAction(
-                                TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-                        act.startActivityForResult(installIntent, INIT_MISSING_LANGUAGE);
-                    }
-                    else {
-                        _init = true;
-                        if (_initCallback != null)
-                            _initCallback.execute();
-                    }
-                } else {
-                    Log.d("TTS", "Error starting the text to speech engine.");
-                }
-            }
-        });
-        return tts;
-    }*/
 
 
     public static void init(Activity questionActivity, InitTextToSpeechCallback initTextToSpeechCallback)
@@ -124,9 +89,6 @@ public class GameEngine {
         _currentWordIndex = -1;
         _currentLetterIndex = -1;
         _currentLevel = 0;
-        // Set good defaults for capturing text.
-        boolean autoFocus = true;
-        boolean useFlash = true;
 
         SharedPreferences prefs = questionActivity.getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
@@ -146,7 +108,6 @@ public class GameEngine {
         Utils.setAudioVolume(50, _questionActivity);
 
 
-        //_init = true;
     }
 
 
@@ -157,11 +118,6 @@ public class GameEngine {
 
         }
     }
-/*
-    public static void setInitTextToSpeechCallback(InitTextToSpeechCallback callback)
-    {
-        _initCallback = callback;
-    }*/
 
     public static boolean isInit()
     {
@@ -180,9 +136,15 @@ public class GameEngine {
 
     public static void launchOcrCapture()
     {
-        Intent ocrCaptureActivity = new Intent(_questionActivity, OcrCaptureActivity.class);
-        //_questionActivity.startActivity(ocrCaptureActivity);
-        _questionActivity.startActivityForResult(ocrCaptureActivity, CAPTURE_ACTIVITY);
+        Intent capture = null;
+        if(true || (getGameType() == GameType.eTrouverMot)) {
+            capture = new Intent(_questionActivity, OcrCaptureActivity.class);
+            _questionActivity.startActivityForResult(capture, CAPTURE_ACTIVITY);
+        }
+        else {
+            capture = new Intent(_questionActivity, OcrCapture2Activity.class);
+            _questionActivity.startActivityForResult(capture, CAPTURE_ACTIVITY2);
+        }
     }
 
     public static void setGameType(GameType type)

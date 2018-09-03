@@ -24,7 +24,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
@@ -34,24 +33,27 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.autodidacte.ui.camera.CameraSource;
 import com.autodidacte.ui.camera.CameraSourcePreview;
 import com.autodidacte.ui.camera.GraphicOverlay;
+import com.google.android.gms.vision.Detector;
+import com.google.android.gms.vision.text.TextBlock;
 import com.google.android.gms.vision.text.TextRecognizer;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.Vector;
 
 /**
@@ -73,7 +75,13 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     public static final String UseFlash = "UseFlash";
     public static final String TextBlockObject = "String";
 
-    private CameraSource cameraSource;
+    private com.autodidacte.ui.camera.CameraSource cameraSource;
+
+    // lettres
+    com.autodidacte.ui.camera.CameraSource mCameraSource = null;
+    SurfaceView cameraView = null;
+    TextView mTextView = null;
+    // fin lettres
 
     private GraphicOverlay<OcrGraphic> graphicOverlay;
 
@@ -116,7 +124,6 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             do {
                 m_Detector.release();
                 OcrCaptureActivity.this.finish();
-                //Utils.Sleep(200);
             }
             while(_counter-- > 0);
         }
@@ -193,22 +200,23 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
-        setContentView(R.layout.ocr_capture);
-
-        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        boolean flush = false;
-        if(flush) {
-            editor.clear();
-            editor.commit();
+        if(GameEngine.getGameType() == GameEngine.GameType.eTrouverMot) {
+            setContentView(R.layout.ocr_capture);
+            preview = (CameraSourcePreview) findViewById(R.id.preview);
+            graphicOverlay = (GraphicOverlay<OcrGraphic>) findViewById(R.id.graphicOverlay);
         }
+        else
+            setContentView(R.layout.activity_capture2);
 
-        preview = (CameraSourcePreview) findViewById(R.id.preview);
-        graphicOverlay = (GraphicOverlay<OcrGraphic>) findViewById(R.id.graphicOverlay);
+
+
 
         int rc = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
         if (rc == PackageManager.PERMISSION_GRANTED) {
-            createCameraSource(true, true);
+            if(GameEngine.getGameType() == GameEngine.GameType.eTrouverMot)
+                createCameraSource(true, true);
+            else
+                createCameraSource2(true, true);
         } else {
             requestCameraPermission();
         }
@@ -216,58 +224,16 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         gestureDetector = new GestureDetector(this, new CaptureGestureListener());
         scaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
 
-        Snackbar.make(graphicOverlay, "Tap to Speak. Pinch/Stretch to zoom",
-                Snackbar.LENGTH_LONG)
-                .show();
+        if(GameEngine.getGameType() == GameEngine.GameType.eTrouverMot) {
+            Snackbar.make(graphicOverlay, "Tap to Speak. Pinch/Stretch to zoom",
+                    Snackbar.LENGTH_LONG)
+                    .show();
+            m_Detector._waitingForDetection = true;
+        }
 
         Utils.setAudioVolume(50, this);
 
-        m_Detector._waitingForDetection = true;
-    }
 
-
-    private void initNotationLetter(Hashtable<Integer, ArrayList<Character>> letters)
-    {
-        letters = new Hashtable<Integer, ArrayList<Character>>();
-        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        String init = preferences.getString("iniLetters", null);
-        if(init == null){
-            SharedPreferences.Editor editor = preferences.edit();
-
-            for(int i = 0; i < 26; i++) {
-                char letter = (char)('A' + i);
-                String sLetter = String.valueOf(letter);
-                editor.putString(sLetter, "0");
-                letter = (char)('a' + i);
-                String letterMinus = String.valueOf(letter);
-                editor.putString(letterMinus, "0");
-            }
-
-            editor.putString("initLetter", "init");
-            editor.apply();
-        }
-
-        initNotationLetterArray('a', letters);
-        initNotationLetterArray('A', letters);
-    }
-
-    void initNotationLetterArray(Character firstChar, Hashtable<Integer, ArrayList<Character>> letters)
-    {
-        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        for(int i = 0; i < 26; i++) {
-            char letter = (char)(i + firstChar);
-            String value = String.valueOf(letter);
-            String level = preferences.getString(value, "");
-            int nLevel = Integer.parseInt(level);
-            if(letters.containsKey(nLevel) == false)
-                letters.put(nLevel, new ArrayList<Character>());
-            letters.get(nLevel).add(letter);
-        }
-    }
-
-    boolean isLow(char c)
-    {
-        return c >= 'a';
     }
 
     /**
@@ -301,18 +267,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 .setAction(R.string.ok, listener)
                 .show();
     }
-/*
-    public static void checkCameraPermissionAnValidateIfNot(Activity activity, boolean autoFocus, boolean useFlash)
-    {
-        // Check for the camera permission before accessing the camera.  If the
-        // permission is not granted yet, request permission.
-        int rc = ActivityCompat.checkSelfPermission(activity, Manifest.permission.CAMERA);
-        if (rc == PackageManager.PERMISSION_GRANTED) {
-            createCameraSource(autoFocus, useFlash);
-        } else {
-            activity.requestCameraPermission();
-        }
-    }*/
+
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
@@ -364,14 +319,101 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
         // Create the cameraSource using the TextRecognizer.
         cameraSource =
-                new CameraSource.Builder(getApplicationContext(), textRecognizer)
-                        .setFacing(CameraSource.CAMERA_FACING_BACK)
+                new com.autodidacte.ui.camera.CameraSource.Builder(getApplicationContext(), textRecognizer)
+                        .setFacing(com.autodidacte.ui.camera.CameraSource.CAMERA_FACING_BACK)
                         .setRequestedPreviewSize(1280, 1024)
                         .setRequestedFps(15.0f)
                         .setFlashMode(useFlash ? Camera.Parameters.FLASH_MODE_TORCH : null)
                         .setFocusMode(autoFocus ? Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO : null)
                         .build();
         _justCreated = true;
+    }
+
+
+    private void createCameraSource2(boolean autoFocus, boolean useFlash) {
+
+        cameraView = findViewById(R.id.surfaceView);
+        //Create the TextRecognizer
+        final TextRecognizer textRecognizer = new TextRecognizer.Builder(getApplicationContext()).build();
+
+        if (!textRecognizer.isOperational()) {
+            Log.w(TAG, "Detector dependencies not loaded yet");
+        } else {
+
+            //Initialize camerasource to use high resolution and set Autofocus on.
+            mCameraSource =
+                    new com.autodidacte.ui.camera.CameraSource.Builder(getApplicationContext(), textRecognizer)
+                    .setFacing(com.google.android.gms.vision.CameraSource.CAMERA_FACING_BACK)
+                    .setRequestedPreviewSize(1280, 1024)
+                    .setFocusMode(autoFocus ? Camera.Parameters.FOCUS_MODE_AUTO : null)
+                    .setFlashMode(useFlash ? Camera.Parameters.FLASH_MODE_TORCH : null)
+                    .setRequestedFps(2.0f)
+                    .build();
+
+            /**
+             * Add call back to SurfaceView and check if camera permission is granted.
+             * If permission is granted we can start our cameraSource and pass it to surfaceView
+             */
+            cameraView.getHolder().addCallback(new SurfaceHolder.Callback() {
+                @Override
+                public void surfaceCreated(SurfaceHolder holder) {
+                    try {
+                        int requestPermissionID = 101;
+                        if (ActivityCompat.checkSelfPermission(getApplicationContext(),
+                                Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+
+                            ActivityCompat.requestPermissions(OcrCaptureActivity.this,
+                                    new String[]{Manifest.permission.CAMERA},
+                                    requestPermissionID);
+                            return;
+                        }
+                        mCameraSource.start(cameraView.getHolder());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                }
+
+                @Override
+                public void surfaceDestroyed(SurfaceHolder holder) {
+                    mCameraSource.stop();
+                }
+            });
+
+            //Set the TextRecognizer's Processor.
+            textRecognizer.setProcessor(new Detector.Processor<TextBlock>() {
+                @Override
+                public void release() {
+                }
+
+                /**
+                 * Detect all the text from camera using TextBlock and the values into a stringBuilder
+                 * which will then be set to the textView.
+                 * */
+                @Override
+                public void receiveDetections(Detector.Detections<TextBlock> detections) {
+                    final SparseArray<TextBlock> items = detections.getDetectedItems();
+                    if (items.size() != 0 ){
+
+                        mTextView.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                StringBuilder stringBuilder = new StringBuilder();
+                                for(int i=0;i<items.size();i++){
+                                    TextBlock item = items.valueAt(i);
+                                    stringBuilder.append(item.getValue());
+                                    stringBuilder.append("\n");
+                                }
+                                mTextView.setText(stringBuilder.toString());
+                            }
+                        });
+                    }
+                }
+            });
+        }
     }
 
     /**
@@ -445,7 +487,10 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             // We have permission, so create the camerasource
             boolean autoFocus = getIntent().getBooleanExtra(AutoFocus,false);
             boolean useFlash = getIntent().getBooleanExtra(UseFlash, false);
-            createCameraSource(autoFocus, useFlash);
+            if(GameEngine.getGameType() == GameEngine.GameType.eTrouverMot)
+                createCameraSource(autoFocus, useFlash);
+            else
+                createCameraSource2(autoFocus, useFlash);
             return;
         }
 

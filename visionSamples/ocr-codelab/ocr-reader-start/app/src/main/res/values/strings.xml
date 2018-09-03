@@ -46,4 +46,7 @@
     <string name="title_activity_menu">MenuActivity</string>
 
     <string name="title_activity_test">testActivity</string>
+
+    <string name="txt_message">No Text Available</string>
+
 </resources>
