@@ -79,7 +79,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
     // lettres
     com.autodidacte.ui.camera.CameraSource mCameraSource = null;
-    SurfaceView cameraView = null;
+    SurfaceView mCameraView = null;
     TextView mTextView = null;
     // fin lettres
 
@@ -205,8 +205,11 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             preview = (CameraSourcePreview) findViewById(R.id.preview);
             graphicOverlay = (GraphicOverlay<OcrGraphic>) findViewById(R.id.graphicOverlay);
         }
-        else
+        else {
             setContentView(R.layout.activity_capture2);
+            mTextView = findViewById(R.id.text_view);
+            mCameraView = findViewById(R.id.surfaceView);
+        }
 
 
 
@@ -332,7 +335,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
     private void createCameraSource2(boolean autoFocus, boolean useFlash) {
 
-        cameraView = findViewById(R.id.surfaceView);
+        mCameraView = findViewById(R.id.surfaceView);
         //Create the TextRecognizer
         final TextRecognizer textRecognizer = new TextRecognizer.Builder(getApplicationContext()).build();
 
@@ -354,7 +357,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
              * Add call back to SurfaceView and check if camera permission is granted.
              * If permission is granted we can start our cameraSource and pass it to surfaceView
              */
-            cameraView.getHolder().addCallback(new SurfaceHolder.Callback() {
+            mCameraView.getHolder().addCallback(new SurfaceHolder.Callback() {
                 @Override
                 public void surfaceCreated(SurfaceHolder holder) {
                     try {
@@ -367,7 +370,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                                     requestPermissionID);
                             return;
                         }
-                        mCameraSource.start(cameraView.getHolder());
+                        mCameraSource.start(mCameraView.getHolder());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
