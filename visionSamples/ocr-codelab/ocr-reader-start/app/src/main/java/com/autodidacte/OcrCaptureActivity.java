@@ -54,6 +54,8 @@ import com.google.android.gms.vision.text.TextBlock;
 import com.google.android.gms.vision.text.TextRecognizer;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 
 /**
@@ -81,6 +83,9 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     com.autodidacte.ui.camera.CameraSource mCameraSource = null;
     SurfaceView mCameraView = null;
     TextView mTextView = null;
+    int nTentativeCount = 0;
+    int nFalseACount = 0;
+    boolean _isLetterDetectionActive = true;
     // fin lettres
 
     private GraphicOverlay<OcrGraphic> graphicOverlay;
@@ -95,6 +100,9 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     private int _flushDetectionBuffer = 0;
     private OcrDetectorProcessor m_Detector;
     boolean _mustFinish = false;
+
+    private int kTimeBeforeNext = 15000;
+
 
     @Override
     public void onBackPressed()
@@ -159,15 +167,6 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                             m_Detector._waitingForDetection = false;
                             break;
                         }
-                    } else if (GameEngine.getGameType() == GameEngine.GameType.eTrouverLettre) {
-                        if (s.length() == 1) {
-                            String sCurrent = String.valueOf(GameEngine.currentItem());
-                            if (s.equals(sCurrent)) {
-                                m_Detector._waitingForDetection = false;
-                                trouve = true;
-                                break;
-                            }
-                        }
                     }
                 }
 
@@ -177,9 +176,6 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                     } else if (!possibleWord.isEmpty()) {
                         GameEngine.onFail(possibleWord, ExpectedWord);
                     }
-                } else if (GameEngine.getGameType() == GameEngine.GameType.eTrouverLettre) {
-                    if (trouve)
-                        GameEngine.onLetterSuccess(GameEngine.currentItem().charAt(0));
                 }
             }
             return true;
@@ -206,13 +202,10 @@ public final class OcrCaptureActivity extends AppCompatActivity {
             graphicOverlay = (GraphicOverlay<OcrGraphic>) findViewById(R.id.graphicOverlay);
         }
         else {
-            setContentView(R.layout.activity_capture2);
+            setContentView(R.layout.ocr_capture2);
             mTextView = findViewById(R.id.text_view);
             mCameraView = findViewById(R.id.surfaceView);
         }
-
-
-
 
         int rc = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
         if (rc == PackageManager.PERMISSION_GRANTED) {
@@ -235,9 +228,20 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         }
 
         Utils.setAudioVolume(50, this);
-
-
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                OcrCaptureActivity.this.runOnUiThread(Timer_Tick);
+            }
+        }, kTimeBeforeNext);
     }
+
+    private Runnable Timer_Tick = new Runnable() {
+        public void run() {
+            finish();
+        }
+    };
 
     /**
      * Handles the requesting of the camera permission.  This includes
@@ -332,6 +336,20 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         _justCreated = true;
     }
 
+    boolean isExceptionMinMajLetter(char letter)
+    {
+        return letter == 'c' || letter == 'C' ||
+                letter == 'k' || letter == 'K' ||
+                letter == 'o' || letter == 'O' ||
+                letter == 's' || letter == 'S' ||
+                letter == 'u' || letter == 'U' ||
+                letter == 'v' || letter == 'V' ||
+                letter == 'w' || letter == 'W' ||
+                letter == 'x' || letter == 'X' ||
+                letter == 'z' || letter == 'Z';
+
+    }
+
 
     private void createCameraSource2(boolean autoFocus, boolean useFlash) {
 
@@ -398,21 +416,62 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                  * */
                 @Override
                 public void receiveDetections(Detector.Detections<TextBlock> detections) {
-                    final SparseArray<TextBlock> items = detections.getDetectedItems();
-                    if (items.size() != 0 ){
+                    if(_mustFinish)
+                        finish();
+                    else {
+                        if (!_isLetterDetectionActive)
+                            return;
+                        final SparseArray<TextBlock> items = detections.getDetectedItems();
+                        if (items.size() != 0) {
 
-                        mTextView.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                StringBuilder stringBuilder = new StringBuilder();
-                                for(int i=0;i<items.size();i++){
-                                    TextBlock item = items.valueAt(i);
-                                    stringBuilder.append(item.getValue());
-                                    stringBuilder.append("\n");
+                            mTextView.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    StringBuilder stringBuilder = new StringBuilder();
+                                    for (int i = 0; i < items.size(); i++) {
+                                        TextBlock item = items.valueAt(i);
+                                        String foundString = item.getValue();
+                                        if (foundString.length() == 1) {
+                                            stringBuilder.append(item.getValue());
+                                            stringBuilder.append("\n");
+
+                                            String current = GameEngine.currentItem();
+                                            String wantedLetter = current;
+                                            if(GameEngine.getGameType() == GameEngine.GameType.eTrouverPremiereLettre)
+                                                wantedLetter = current.substring(0, 1);
+                                            char foundchar = foundString.charAt(0);
+                                            if(Utils.isLetter(foundString.charAt(0)) ) {
+                                                String modifiedFoundString = foundString;
+                                                String modifiedCurrent = wantedLetter;
+                                                if(isExceptionMinMajLetter(foundchar) ||
+                                                        GameEngine.getGameType() == GameEngine.GameType.eTrouverPremiereLettre) {
+                                                    modifiedFoundString = foundString.toLowerCase();
+                                                    modifiedCurrent = wantedLetter.toLowerCase();
+                                                }
+                                                if (modifiedFoundString.equals(modifiedCurrent)) {
+                                                    _isLetterDetectionActive = false;
+                                                    GameEngine.onSuccess(wantedLetter);
+                                                } else {
+                                                    if(foundString.equals('A'))
+                                                        nFalseACount++;
+                                                    else
+                                                        nTentativeCount++;
+                                                    if ((nTentativeCount + nFalseACount / 2) > 4) {
+                                                        nTentativeCount = 0;
+                                                        nFalseACount = 0;
+                                                        _isLetterDetectionActive = false;
+                                                        GameEngine.onFail(foundString, wantedLetter);
+                                                        break;
+                                                    }
+                                                }
+
+                                            }
+                                        }
+                                    }
+                                    mTextView.setText(stringBuilder.toString());
                                 }
-                                mTextView.setText(stringBuilder.toString());
-                            }
-                        });
+                            });
+                        }
                     }
                 }
             });
@@ -433,7 +492,16 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     {
         int i = resultCode;
         _mustFinish = true;
-        //m_Detector.mustFinish();
+        if(GameEngine.getGameType() == GameEngine.GameType.eTrouverLettre) {
+            Timer myTimer = new Timer();
+            myTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    runOnUiThread(Timer_Tick);
+                }
+
+            }, 1000);
+        }
     }
 
     /**
@@ -551,11 +619,11 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     private boolean onTap(float rawX, float rawY) {
         // TODO: Speak the text when the user taps on screen.
         tapCount++;
-        if(tapCount > 1) {
-            _onTap = true;
-            //GameEngine.askNextItem();
+        if(tapCount < 2) {
+            GameEngine.onTap();
+        }
+        else {
             finish();
-            _onTap = false;
             tapCount = 0;
         }
         return true;

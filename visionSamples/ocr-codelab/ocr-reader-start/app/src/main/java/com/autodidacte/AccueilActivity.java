@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Point;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Display;
@@ -15,12 +16,14 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class AlphabetActivity extends Activity {
-
+public class AccueilActivity extends Activity {
 
     Button _trouverLettre = null;
     Button _trouverPremiereLettre = null;
@@ -28,64 +31,84 @@ public class AlphabetActivity extends Activity {
     Button _sortie = null;
     Button _options = null;
     Button _aide = null;
+    private VideoView _video = null;
+
+    public void configureButton(VideoView video) {
+        //Utils.Sleep(2000);
+        _trouverLettre = (Button)findViewById(R.id.trouverLettre);
+        _trouverMot = (Button)findViewById(R.id.trouverMot);
+        _trouverPremiereLettre = (Button)findViewById(R.id.trouverPremiereLettre);
+
+        Button arr[] = {_trouverLettre, _trouverPremiereLettre, _trouverMot/*, _sortie, _options, _aide*/}; //new Button[6];
+
+        int color = 0xAA888888;
+        for(int i = 0; i < arr.length; i++)
+        {
+            Button b = arr[i];
+            b.setBackgroundColor(color);
+        }
+
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+
+
+        int w = video.getWidth();
+        int h = video.getHeight();
+
+        int precision = 10000;
+
+        int xLettre = 4300;
+        int yLettre = 700;
+        int wLettre = 1400;
+        int hLettre = 1900;
+
+        int xPremiereLettre = 5000;
+        int yPremiereLettre = 7000;
+        int wPremiereLettre = 1000;
+        int hPremiereLettre = 2100;
+
+        int xMot = 7900;
+        int yMot = 2650;
+        int wMot = 700;
+        int hMot = 1900;
+
+        _trouverLettre.setX(w * xLettre / precision);
+        _trouverLettre.setY(h * yLettre / precision);
+        _trouverLettre.setLayoutParams(new RelativeLayout.LayoutParams(w * wLettre / precision,h * hLettre / precision));
+
+        _trouverPremiereLettre.setX(w * xPremiereLettre / precision);
+        _trouverPremiereLettre.setY(h * yPremiereLettre / precision);
+        _trouverPremiereLettre.setLayoutParams(new RelativeLayout.LayoutParams(w * wPremiereLettre / precision,h * hPremiereLettre / precision));
+
+        _trouverMot.setX(w * xMot / precision);
+        _trouverMot.setY(h * yMot / precision);
+        _trouverMot.setLayoutParams(new RelativeLayout.LayoutParams(w * wMot / precision,h * hMot / precision));
+
+        GameEngine.configureGeneralButtons(AccueilActivity.this, w, h, R.id.retour, R.id.options, R.id.aide);
+    }
 
     class OnVideoReadyCallback implements Utils.IOnVideoReadyCallback
     {
         public void execute(VideoView video)
         {
-            _trouverLettre = (Button)findViewById(R.id.trouverLettre);
-            _trouverMot = (Button)findViewById(R.id.trouverMot);
-            _trouverPremiereLettre = (Button)findViewById(R.id.trouverPremiereLettre);
+            _video = video;
+            Timer myTimer = new Timer();
+            myTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    AccueilActivity.this.runOnUiThread(Timer_Tick);
+                }
 
-            Button arr[] = {_trouverLettre, _trouverPremiereLettre, _trouverMot/*, _sortie, _options, _aide*/}; //new Button[6];
-
-            int color = 0x00888888;
-            for(int i = 0; i < arr.length; i++)
-            {
-                Button b = arr[i];
-                b.setBackgroundColor(color);
-            }
-
-            Display display = getWindowManager().getDefaultDisplay();
-            Point size = new Point();
-            display.getSize(size);
-
-
-            int w = video.getWidth();
-            int h = video.getHeight();
-
-            int precision = 10000;
-
-            int xLettre = 4300;
-            int yLettre = 700;
-            int wLettre = 1400;
-            int hLettre = 1900;
-
-            int xPremiereLettre = 5000;
-            int yPremiereLettre = 7000;
-            int wPremiereLettre = 1000;
-            int hPremiereLettre = 2100;
-
-            int xMot = 7900;
-            int yMot = 2650;
-            int wMot = 700;
-            int hMot = 1900;
-
-            _trouverLettre.setX(w * xLettre / precision);
-            _trouverLettre.setY(h * yLettre / precision);
-            _trouverLettre.setLayoutParams(new RelativeLayout.LayoutParams(w * wLettre / precision,h * hLettre / precision));
-
-            _trouverPremiereLettre.setX(w * xPremiereLettre / precision);
-            _trouverPremiereLettre.setY(h * yPremiereLettre / precision);
-            _trouverPremiereLettre.setLayoutParams(new RelativeLayout.LayoutParams(w * wPremiereLettre / precision,h * hPremiereLettre / precision));
-
-            _trouverMot.setX(w * xMot / precision);
-            _trouverMot.setY(h * yMot / precision);
-            _trouverMot.setLayoutParams(new RelativeLayout.LayoutParams(w * wMot / precision,h * hMot / precision));
-
-            GameEngine.configureGeneralButtons(AlphabetActivity.this, w, h, R.id.retour, R.id.options, R.id.aide);
+            }, 500, 1000);
         }
     }
+
+    private Runnable Timer_Tick = new Runnable() {
+        public void run() {
+            configureButton(_video);
+        }
+    };
 
 
     /**
@@ -152,41 +175,56 @@ public class AlphabetActivity extends Activity {
         }
     };
 
-    OnVideoReadyCallback _onVideoReadyCallback = null;
+
+    MediaPlayer activeMP = null;
+    int activeSongMilliseconds = 0;
+    MediaPlayer queuedMP = null;
+    int activeSongResID = 0;
+
+    //MediaPlayer soundAccueil = null;
+
+    private void playCurrentMenuSound(float volume)
+    {
+        Utils.playSound(getApplicationContext(), R.raw.musicaccueil, true, 0.5f * volume, "musicaccueil");
+        Utils.playSound(getApplicationContext(), R.raw.soundaccueil,  false,1.0f * volume, "soundAccueil");
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        setContentView(R.layout.activity_alphabet);
-
-        if(_onVideoReadyCallback == null)
-            _onVideoReadyCallback = new OnVideoReadyCallback();
-
-        Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
-        //Utils.stopVideo();
-        Utils.playVideo(this, R.raw.mainmenu);
+        setContentView(R.layout.activity_accueil);
         mVisible = true;
     }
+
+    @Override
+    public void onDestroy()
+    {
+        super.onDestroy();
+        //soundAccueil.stop();
+    }
+
 
     @Override
     protected void onResume()
     {
         super.onResume();
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        setContentView(R.layout.activity_accueil);
         GameEngine.setFirstTime();
         if (GameEngine.returnToAlphabetActvity)
             GameEngine.returnToAlphabetActvity = false;
 
-        if (_onVideoReadyCallback == null)
-            _onVideoReadyCallback = new OnVideoReadyCallback();
-        Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
-        //Utils.stopVideo();
-        Utils.playVideo(this, R.raw.mainmenu);
+        Utils.stopSounds();
+        playCurrentMenuSound(0.5f);
+        Utils.setOnVideoReadyCallback(new OnVideoReadyCallback());
+        Utils.playVideo(this, R.raw.accueil);
     }
 
     @Override
     public void onBackPressed()
     {
+        Utils.stopSounds();
         super.onBackPressed();
         MainActivity.mustFinish();
     }
@@ -216,16 +254,19 @@ public class AlphabetActivity extends Activity {
         GameEngine.setGameType(GameEngine.GameType.eTrouverLettre);
         Utils.setOnVideoReadyCallback(null);
         Utils.stopVideo();
-        Intent menuLettre = new Intent(AlphabetActivity.this, MenuActivity.class);
+        Utils.stopSounds();
+        Intent menuLettre = new Intent(AccueilActivity.this, SubMenuActivity.class);
         startActivity(menuLettre);
     }
 
     public void trouverMot(View v)
     {
+        //Utils.playSound(AccueilActivity.this.getApplicationContext(), R.raw.soundaccueil, false, 1.0f, "soundAccueil");
         GameEngine.setGameType(GameEngine.GameType.eTrouverMot);
         Utils.setOnVideoReadyCallback(null);
         Utils.stopVideo();
-        Intent menuMot = new Intent(AlphabetActivity.this, MenuActivity.class);
+        Utils.stopSounds();
+        Intent menuMot = new Intent(AccueilActivity.this, SubMenuActivity.class);
         startActivity(menuMot);
     }
 
@@ -234,7 +275,8 @@ public class AlphabetActivity extends Activity {
         GameEngine.setGameType(GameEngine.GameType.eTrouverPremiereLettre);
         Utils.setOnVideoReadyCallback(null);
         Utils.stopVideo();
-        Intent menuPremiereLettre = new Intent(AlphabetActivity.this, MenuActivity.class);
+        Utils.stopSounds();
+        Intent menuPremiereLettre = new Intent(AccueilActivity.this, SubMenuActivity.class);
         startActivity(menuPremiereLettre);
     }
 

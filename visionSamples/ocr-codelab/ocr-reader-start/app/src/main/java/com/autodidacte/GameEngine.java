@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Random;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -70,7 +71,6 @@ public class GameEngine {
     public static Locale currentLanguage()
     {
         return Locale.FRANCE;
-        //return Locale.GERMAN;
     }
 
 
@@ -102,10 +102,13 @@ public class GameEngine {
 
         initNotationWords();
         _notationLetter = initNotationLetter();
-        _notationFirstLetter = initNotationLetter();
+        SharedPreferences preferences = _questionActivity.getPreferences(MODE_PRIVATE);
+        String testInit = preferences.getString("initLetters", null);
+
+        _notationFirstLetter = initNotationFirstLetter();
         _firstTime = true;
 
-        Utils.setAudioVolume(50, _questionActivity);
+        Utils.setAudioVolume(0, _questionActivity);
 
 
     }
@@ -257,25 +260,64 @@ public class GameEngine {
 
     private static Hashtable<Integer, ArrayList<Character>> initNotationLetter()
     {
+        String initString = "initLetters";
         Hashtable<Integer, ArrayList<Character>> letters = new Hashtable<Integer, ArrayList<Character>>();
         SharedPreferences preferences = _questionActivity.getPreferences(MODE_PRIVATE);
-        String init = preferences.getString("iniLetters", null);
+        String init = preferences.getString(initString, null);
         if(init == null){
             SharedPreferences.Editor editor = preferences.edit();
 
             for(int i = 0; i < 26; i++) {
                 char letter = (char)('A' + i);
+                if(letter == 'l' || letter == 'I' || letter == 't' || letter == 'i' )
+                    continue;
                 String sLetter = String.valueOf(letter);
                 editor.putString(sLetter, "0");
                 letter = (char)('a' + i);
                 String letterMinus = String.valueOf(letter);
                 editor.putString(letterMinus, "0");
             }
-            editor.putString("initLetter", "init");
+            editor.putString(initString, "init");
             editor.apply();
         }
         initNotationLetterArray('a', letters);
         initNotationLetterArray('A', letters);
+        return letters;
+    }
+
+    private static Hashtable<Integer, ArrayList<Character>> initNotationFirstLetter()
+    {
+        String initString = "initFirstLetters";
+        Hashtable<Integer, ArrayList<Character>> letters = new Hashtable<Integer, ArrayList<Character>>();
+        SharedPreferences preferences = _questionActivity.getPreferences(MODE_PRIVATE);
+        String init = preferences.getString(initString, null);
+        if(init == null){
+            SharedPreferences.Editor editor = preferences.edit();
+
+            for(int i = 0; i < 26; i++) {
+                char letter = (char)('a' + i);
+                if(letter == 'l' || letter == 'I' || letter == 't' || letter == 'i' )
+                    continue;
+                String sLetter = String.valueOf(letter) + "_prem";
+                editor.putString(sLetter, "0");
+            }
+            editor.putString(initString, "init_prem");
+            editor.apply();
+        }
+
+        //initNotationLetterArray('a', letters);
+        for(int i = 0; i < 26; i++) {
+            char letter = (char)(i + 'a');
+            String value = String.valueOf(letter) + "_prem";
+            String level = preferences.getString(value, "");
+            if(level.length() > 0) {
+                int nLevel = Integer.parseInt(level);
+                if (letters.containsKey(nLevel) == false)
+                    letters.put(nLevel, new ArrayList<Character>());
+                letters.get(nLevel).add(letter);
+            }
+        }
+
         return letters;
     }
 
@@ -287,10 +329,12 @@ public class GameEngine {
             char letter = (char)(i + firstChar);
             String value = String.valueOf(letter);
             String level = preferences.getString(value, "");
-            int nLevel = Integer.parseInt(level);
-            if(letters.containsKey(nLevel) == false)
-                letters.put(nLevel, new ArrayList<Character>());
-            letters.get(nLevel).add(letter);
+            if(level.length() > 0) {
+                int nLevel = Integer.parseInt(level);
+                if (letters.containsKey(nLevel) == false)
+                    letters.put(nLevel, new ArrayList<Character>());
+                letters.get(nLevel).add(letter);
+            }
         }
     }
 
@@ -310,29 +354,59 @@ public class GameEngine {
         return "";
     }
 
+    static void updateWordIndexIncrement()
+    {
+        _currentWordIndex++;
+        if (_currentWordIndex >= _notationWord.get(_currentLevel).size()) {
+            do {
+                _currentLevel++;
+            }
+            while (_notationWord.get(_currentLevel).size() == 0 || _currentLevel < MAX_LEVEL);
+            _currentWordIndex = 0;
+        }
+    }
+
+    static void updateWordIndexRandom()
+    {
+        int max = _notationWord.get(_currentLevel).size();
+
+        Random r = new Random();
+        _currentWordIndex = r.nextInt(max + 1);
+    }
+
+    void updateLetterIndexIncrement()
+    {
+        _currentLetterIndex++;
+        if(_notationLetter != null) {
+            if (_currentLetterIndex >= _notationLetter.get(_currentLetterLevel).size()) {
+                do {
+                    _currentLetterLevel++;
+                }
+                while (_notationWord.get(_currentLetterLevel).size() == 0 || _currentLetterLevel < MAX_LEVEL);
+                _currentLetterIndex = 0;
+            }
+        }
+    }
+
+    static void updateLetterIndexRandom()
+    {
+        int max = 0;
+        while(max == 0) {
+            max = _notationLetter.get(_currentLetterLevel++).size();
+        }
+        _currentLetterLevel--;
+
+        Random r = new Random();
+        _currentLetterIndex = r.nextInt(max + 1);
+    }
+
     private static String nextItem()
     {
         if(_gameType == GameType.eTrouverMot) {
-            _currentWordIndex++;
-            if (_currentWordIndex >= _notationWord.get(_currentLevel).size()) {
-                do {
-                    _currentLevel++;
-                }
-                while (_notationWord.get(_currentLevel).size() == 0 || _currentLevel < MAX_LEVEL);
-                _currentWordIndex = 0;
-            }
+            updateWordIndexRandom();
         }
         else if(_gameType == GameType.eTrouverLettre) {
-            _currentLetterIndex++;
-            if(_notationLetter != null) {
-                if (_currentLetterIndex >= _notationLetter.get(_currentLetterLevel).size()) {
-                    do {
-                        _currentLetterLevel++;
-                    }
-                    while (_notationWord.get(_currentLetterLevel).size() == 0 || _currentLetterLevel < MAX_LEVEL);
-                    _currentLetterIndex = 0;
-                }
-            }
+            updateLetterIndexRandom();
         }
         else if(_gameType == GameType.eTrouverPremiereLettre) {
             _currentFirstLetterIndex++;
@@ -361,9 +435,16 @@ public class GameEngine {
         return "";
     }
 
+    public static void onTap()
+    {
+        _onTap = true;
+        askNextItem();
+        //_onTap = false;
+    }
+
     public static void askNextItem()
     {
-        int languageRet = tts.setLanguage(GameEngine.currentLanguage());
+         int languageRet = tts.setLanguage(GameEngine.currentLanguage());
         String c;
         if(!_onTap){
             if(_detector != null)
@@ -388,53 +469,62 @@ public class GameEngine {
                 sentence += " grec ";
         }
         else if(_gameType == GameType.eTrouverLettre){
+            String lettre = c;
+            if(c == "y" || c == "Y")
+                lettre += " grec ";
+            if(isLow(c.charAt(0)))
+                lettre += " minuscule";
+            else
+                lettre += " majuscule";
             if (_firstTime) {
-                sentence = "Bonjour, trouve moi la lettre, " + c;
-                if(c == "y" || c == "Y")
-                    sentence += " grec ";
-                if(isLow(c.charAt(0)))
-                    sentence += " minuscule";
-                else
-                    sentence += " majuscule";
+                sentence = "Bonjour, trouve moi la lettre, " + lettre;
                 _firstTime = false;
             } else if (_onTap)
-                sentence = "Trouve moi la lettre, " + c;
+                sentence = "Trouve moi la lettre, " + lettre;
             else
-                sentence = "Lettre suivante, trouve moi la lettre, " + c + " ?";
+                sentence = "Lettre suivante, trouve moi la lettre, " + lettre + " ?";
         }
         else if(_gameType == GameType.eTrouverPremiereLettre){
             if (_firstTime) {
                 sentence = "Bonjour, par quelle lettre commence le mot " + c;
                 _firstTime = false;
             } else if (_onTap)
-                sentence = "Trouve moi la lettre, " + c;
+                sentence = "Trouve moi la premiere lettre du mot " + c;
             else
-                sentence = "Lettre suivante, trouve moi la lettre, " + c + " ?";
+                sentence = "Suivant, par quelle lettre commence le mot " + c + " ?";
         }
 
+
         int speakRet = tts.speak(sentence, TextToSpeech.QUEUE_ADD, null, "DEFAULT");
-        int listenerRet = tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-            @Override
-            public void onStart(String utteranceId) {
-                int test = 0;
-                test = test;
-            }
 
-            @Override
-            public void onDone(String utteranceId) {
-                if(_detector != null)
-                    _detector._waitingForDetection = true;
-                Utils.Sleep(500);
-                launchOcrCapture();
-            }
+        if(!_onTap) {
+            int listenerRet = tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                @Override
+                public void onStart(String utteranceId) {
+                    int test = 0;
+                    test = test;
+                }
 
-            @Override
-            public void onError(String utteranceId) {
-                int test = 0;
-                test = test;
-            }
-        });
-    }
+                @Override
+                public void onDone(String utteranceId) {
+                    if(!_onTap) {
+                        if (_detector != null)
+                            _detector._waitingForDetection = true;
+                        Utils.Sleep(500);
+                        launchOcrCapture();
+                    }
+                    else
+                        _onTap = false;
+                }
+
+                @Override
+                public void onError(String utteranceId) {
+                    int test = 0;
+                    test = test;
+                }
+            });
+        }
+     }
 
     public static void onLetterSuccess(char c)
     {
@@ -453,21 +543,48 @@ public class GameEngine {
     }
 
 
-    public static void onSuccess(String wordFound)
+    public static void onSuccess(String itemFound)
     {
         SharedPreferences prefs = _questionActivity.getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        String level = prefs.getString(wordFound, "");
+        String key = itemFound;
+        if(getGameType() == GameType.eTrouverPremiereLettre)
+            key = key.toLowerCase() + "_prem";
+
+        String level = prefs.getString(key, "");
 
         Integer nLevel = Integer.parseInt(level) + 1;
+        int levelInt = nLevel.intValue();
         level = Integer.toString(nLevel);
-        editor.putString(wordFound, level);
+        editor.putString(itemFound, level);
         editor.commit();
-        String test = prefs.getString(wordFound, "");
+        String test = prefs.getString(itemFound, "");
 
         String item = currentItem();
 
-        String sentence = "Bravo, " + wordFound + " commence bien par " + item + " ! ";
+        String sentence = "";
+        if(getGameType() == GameType.eTrouverMot)
+            sentence = "Bravo, " + itemFound + " commence bien par " + item + " ! ";
+        else if(getGameType() == GameType.eTrouverLettre) {
+            char charFound = itemFound.charAt(0);
+            boolean isMinus = (charFound >= 'a') && (charFound <= 'z');
+            String itemFoundVocal = (charFound == 'y' || charFound == 'Y') ? itemFound + " grec" : itemFound;
+            sentence = "Bravo, tu as trouver la lettre " + itemFoundVocal + (isMinus ? " minuscule" : " majuscule");
+            ArrayList<Character> currentLevelArray = _notationLetter.get(levelInt-1);
+            currentLevelArray.remove(_currentLetterIndex);
+            if(_notationLetter.get(nLevel) == null)
+                _notationLetter.put(nLevel, new ArrayList<Character>());
+            _notationLetter.get(nLevel).add(charFound);
+        }
+        else if(getGameType() == GameType.eTrouverPremiereLettre) {
+            char charFound = itemFound.charAt(0);
+            sentence = "Bravo, " + item + " commence bien par " + itemFound + " ! ";
+            ArrayList<Character> currentLevelArray = _notationFirstLetter.get(levelInt-1);
+            currentLevelArray.remove(_currentLetterIndex);
+            if(_notationLetter.get(nLevel) == null)
+                _notationLetter.put(nLevel, new ArrayList<Character>());
+            _notationLetter.get(nLevel).add(charFound);
+        }
         Intent successActivity = new Intent(_ocrCaptureActivity, SuccessActivity.class);
         successActivity.putExtra("sentence", sentence);
         successActivity.putExtra("result", "success");
@@ -481,12 +598,21 @@ public class GameEngine {
         return c >= 'a';
     }
 
-    public static void onFail(String wrongWord, String ExpectedWord)
+    public static void onFail(String wrongItem, String ExpectedItem)
     {
         String item = currentItem();
 
-        String sentence = "Tu tes trompé, " + wrongWord + " ne commence pas par, " + currentItem() +
-                ", le bon mot etait " + ExpectedWord;
+        String sentence = "Tu tes trompé, ";
+        if(getGameType() == GameType.eTrouverMot) {
+            sentence += wrongItem + " ne commence pas par, " + currentItem() +
+                    ", le bon mot etait " + ExpectedItem;
+        }
+        else if(getGameType() == GameType.eTrouverLettre){
+            String minmajWrongWord =  isLow(wrongItem.charAt(0)) ? "minuscule" : "majuscule";
+            String minmajExpeted =  isLow(ExpectedItem.charAt(0)) ? "minuscule" : "majuscule";
+            sentence += "tu as choisi la lettre " + wrongItem + " " + minmajWrongWord +
+                    ", j'avais demander la lettre " + ExpectedItem + " " + minmajExpeted;
+        }
         Intent successActivity = new Intent(_ocrCaptureActivity, SuccessActivity.class);
         successActivity.putExtra("sentence", sentence);
         successActivity.putExtra("result", "error");
@@ -512,11 +638,11 @@ public class GameEngine {
         String name = activity.getLocalClassName();
         if(name.toLowerCase().indexOf("menu") != -1) {
             if (type == GameEngine.GameType.eTrouverMot)
-                video = R.raw.motmenu;
+                video = R.raw.submenumot;
             else if (type == GameEngine.GameType.eTrouverPremiereLettre)
-                video = R.raw.premierelettremenu;
+                video = R.raw.submenupremierelettre;
             else if (type == GameEngine.GameType.eTrouverLettre)
-                video = R.raw.lettremenu;
+                video = R.raw.submenulettre;
         }
         else if(name.toLowerCase().indexOf("question") != -1) {
             if (type == GameEngine.GameType.eTrouverMot)
@@ -546,7 +672,7 @@ public class GameEngine {
 
         Button arr[] = {retour, options, aide};
 
-        int color = 0x00888888;
+        int color = 0xAA888888;
         for(int i = 0; i < arr.length; i++)
         {
             Button b = arr[i];
@@ -581,6 +707,7 @@ public class GameEngine {
             retour.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    Utils.stopSounds();
                     Activity parent = ((Activity)v.getContext());
                     if(parent != null) {
                         String name = parent.getLocalClassName();

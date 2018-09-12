@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
@@ -11,6 +12,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ImageView;
 //import android.app.
 
 public class MainActivity extends AppCompatActivity {
@@ -36,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
     void startAlphabetActivity()
     {
-        Intent apprendreAlphabet = new Intent(MainActivity.this, AlphabetActivity.class);
+        Intent apprendreAlphabet = new Intent(MainActivity.this, AccueilActivity.class);
         startActivity(apprendreAlphabet);
     }
 
@@ -68,8 +70,10 @@ public class MainActivity extends AppCompatActivity {
     {
         super.onResume();
         if(_mustFinish) {
-            _mustFinish = false;
-            finish();
+            //_mustFinish = false;
+
+            ImageView aurevoir = (ImageView)findViewById(R.id.aurevoir);
+            aurevoir.setBackgroundResource(R.drawable.aurevoir);
         }
     }
 
@@ -83,12 +87,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_main);
+
+        if(_mustFinish)
+            return;
+
 
         boolean test = false;
         if (test)
         {
-            Intent test2 = new Intent(MainActivity.this, OcrCapture2Activity.class);
+            Intent test2 = new Intent(MainActivity.this, test2Activity.class);
             startActivity(test2);
         }
         else {

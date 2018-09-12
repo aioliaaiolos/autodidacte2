@@ -93,13 +93,15 @@ public class testActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_test);
+
+        /*
+
 
         if(charToId == null)
         {
             initMapping();
         }
-
-        setContentView(R.layout.activity_test);
 
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
@@ -122,7 +124,7 @@ public class testActivity extends Activity {
 
         Utils.Sleep(1000);
         setResult(1);
-        finish();
+        finish();*/
     }
 
     @Override
@@ -206,7 +208,7 @@ public class testActivity extends Activity {
         charToId.put('v', R.drawable.v);
         charToId.put('w', R.drawable.w);
         charToId.put('x', R.drawable.x);
-        //charToId.put('y', R.drawable.y);
+        //charToWordId.put('y', R.drawable.y);
         charToId.put('z', R.drawable.z);
     }
 }

@@ -5,6 +5,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
@@ -13,11 +14,14 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class MenuActivity extends Activity {
+public class SubMenuActivity extends Activity implements MediaPlayer.OnVideoSizeChangedListener {
 
 
     /**
@@ -38,6 +42,9 @@ public class MenuActivity extends Activity {
      */
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
+
+    private VideoView _video = null;
+
     //private View mContentView;
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
@@ -124,46 +131,106 @@ public class MenuActivity extends Activity {
             x = 3000;
             y = 1250;
             w = 2400;
-            h = 4600;
+            h = 5600;
         }
         Rectangle rect = new Rectangle(x, y, w, h);
         return rect;
     }
 
+    public void configureButton(VideoView video) {
+        int color = 0xAA888888;
+        _bouton = (Button) findViewById(R.id.bouton);
+        _bouton.setBackgroundColor(color);
+        int wScreen = video.getWidth();
+        int hScreen = video.getHeight();
+
+        GameEngine.configureGeneralButtons(SubMenuActivity.this, wScreen, hScreen, R.id.retour, R.id.options, R.id.aide);
+
+        Rectangle rect = computeButtonPositionFromGameType(GameEngine.getGameType());
+
+        int precision = 10000;
+        _bouton.setX(wScreen * rect.x / precision);
+        _bouton.setY(hScreen * rect.y / precision);
+        int w = wScreen * rect.w / precision;
+        int h = hScreen * rect.h / precision;
+        _bouton.setLayoutParams(new RelativeLayout.LayoutParams(w, h));
+    }
+
     class OnVideoReadyCallback implements Utils.IOnVideoReadyCallback {
         public void execute(VideoView video) {
-            int color = 0xAA888888;
-            _bouton = (Button) findViewById(R.id.bouton);
-            _bouton.setBackgroundColor(color);
-            int wScreen = video.getWidth();
-            int hScreen = video.getHeight();
+            _video = video;
+            Timer myTimer = new Timer();
+            myTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    SubMenuActivity.this.runOnUiThread(Timer_Tick);
+                }
 
-            GameEngine.configureGeneralButtons(MenuActivity.this, wScreen, hScreen, R.id.retour, R.id.options, R.id.aide);
-
-            Rectangle rect = computeButtonPositionFromGameType(GameEngine.getGameType());
-
-            int precision = 10000;
-            _bouton.setX(wScreen * rect.x / precision);
-            _bouton.setY(hScreen * rect.y / precision);
-            int w = wScreen * rect.w / precision;
-            int h = hScreen * rect.h / precision;
-            _bouton.setLayoutParams(new RelativeLayout.LayoutParams(w, h));
+            }, 1000);
         }
     }
 
-    OnVideoReadyCallback _onVideoReadyCallback = null;
+    private Runnable Timer_Tick = new Runnable() {
+        public void run() {
+            configureButton(_video);
+        }
+    };
+
+    class OnVideoCompletionCallback implements MediaPlayer.OnCompletionListener
+    {
+        @Override
+        public void onCompletion(MediaPlayer mp) {
+            if(_video != null) {
+                configureButton(_video);
+            }
+        }
+    }
+
+    @Override
+    public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
+        mp = mp;
+        /*
+        videoWidth = width;
+        videoHeight = height;
+        Toast.makeText(getApplicationContext(),
+                String.valueOf(videoWidth) + "x" + String.valueOf(videoHeight),
+                Toast.LENGTH_SHORT).show();
+
+        if (mediaPlayer.isPlaying()){
+            surfaceHolder.setFixedSize(videoWidth, videoHeight);
+        }*/
+
+    }
+
+    private void playCurrentMenuSound(float volume)
+    {
+        int soundId = 0;
+        String resName = "";
+        if(GameEngine.getGameType() ==  GameEngine.GameType.eTrouverLettre) {
+            soundId = R.raw.soundmajmin;
+            resName = "soundmajmin";
+        }
+        else if(GameEngine.getGameType() ==  GameEngine.GameType.eTrouverPremiereLettre) {
+            soundId = R.raw.soundpremierelettre;
+            resName = "soundPremiereLettre";
+        }
+        else if(GameEngine.getGameType() ==  GameEngine.GameType.eTrouverMot) {
+            soundId = R.raw.soundword;
+            resName = "soundWord";
+        }
+        Utils.playSound(getApplicationContext(), soundId, false,1.0f * volume, resName);
+        Utils.playSound(getApplicationContext(), R.raw.musicsousmenu, false,0.5f * volume, "musicsousmenu");
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        setContentView(R.layout.activity_menu);
+        setContentView(R.layout.activity_submenu);
 
-        if (_onVideoReadyCallback == null)
-            _onVideoReadyCallback = new OnVideoReadyCallback();
-
-        Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
-        Utils.playVideo(this, GameEngine.getVideoFromGameType(GameEngine.getGameType(), this));
+        //Utils.setOnVideoReadyCallback(new OnVideoReadyCallback());
+        //Utils.setOnVideoCompletionCallback(new OnVideoCompletionCallback());
+        //Utils.playVideo(this, GameEngine.getVideoFromGameType(GameEngine.getGameType(), this));
     }
 
     @Override
@@ -172,8 +239,10 @@ public class MenuActivity extends Activity {
         if (GameEngine.returnToAlphabetActvity)
             finish();
         else {
-            Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
-            Utils.stopVideo();
+            playCurrentMenuSound(0.5f);
+            Utils.setOnVideoReadyCallback(new OnVideoReadyCallback());
+            //Utils.setOnVideoCompletionCallback(new OnVideoCompletionCallback());
+            //Utils.stopVideo();
             Utils.playVideo(this, GameEngine.getVideoFromGameType(GameEngine.getGameType(), this));
         }
     }
@@ -238,6 +307,8 @@ public class MenuActivity extends Activity {
     }
 
     public void launch(View view) {
+        Utils.stopSounds();
+        Utils.playSound(SubMenuActivity.this, R.raw.soundclicksubmenu, false, 100, "soundclicksubmenu");
         Intent questionActivity = new Intent(this, QuestionActivity.class);
         startActivity(questionActivity);
     }

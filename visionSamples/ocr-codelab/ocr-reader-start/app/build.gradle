@@ -8,8 +8,8 @@ android {
         applicationId "com.autodidacte"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 7
-        versionName "1.0.6"
+        versionCode 8
+        versionName "1.0.7"
     }
     buildTypes {
         release {
@@ -25,4 +25,5 @@ dependencies {
     implementation 'com.android.support:design:26.1.0'
     implementation 'com.google.android.gms:play-services-vision:15.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    implementation 'com.android.support:percent:23.1.1'
 }

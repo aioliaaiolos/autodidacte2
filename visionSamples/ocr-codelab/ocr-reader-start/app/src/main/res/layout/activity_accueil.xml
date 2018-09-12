@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    tools:context=".AccueilActivity">
+
+    <include layout="@layout/video_background" />
+
+
+    <Button
+        android:translationX="255dp"
+        android:translationY="24dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:id="@+id/trouverLettre"
+        android:background="#00888888"
+        android:onClick="trouverLettre"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
+    <Button
+        android:translationX="302dp"
+        android:translationY="237dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:id="@+id/trouverPremiereLettre"
+        android:background="#00888888"
+        android:onClick="trouver1ereLettre"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
+    <Button
+        android:translationX="467dp"
+        android:translationY="92dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:id="@+id/trouverMot"
+        android:background="#00888888"
+        android:onClick="trouverMot"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
+    <Button
+        android:translationX="120dp"
+        android:translationY="10dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:id="@+id/retour"
+        android:background="#AA888888"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
+    <Button
+        android:translationX="517dp"
+        android:translationY="8dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:id="@+id/options"
+        android:background="#00888888"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
+    <Button
+        android:translationX="517dp"
+        android:translationY="43dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:id="@+id/aide"
+        android:background="#00888888"
+        android:layout_alignLeft="@+id/videoView"
+        android:layout_alignBottom="@+id/videoView"/>
+
+
+
+
+
+
+
+</RelativeLayout>

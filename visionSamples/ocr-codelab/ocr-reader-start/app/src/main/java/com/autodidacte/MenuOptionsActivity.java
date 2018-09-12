@@ -89,8 +89,6 @@ public class MenuOptionsActivity extends Activity {
         }
     }
 
-    OnVideoReadyCallback _onVideoReadyCallback = null;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,10 +96,8 @@ public class MenuOptionsActivity extends Activity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_menu_options);
 
-        if(_onVideoReadyCallback == null)
-            _onVideoReadyCallback = new OnVideoReadyCallback();
 
-        Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
+        Utils.setOnVideoReadyCallback(new OnVideoReadyCallback());
         Utils.playVideo(this, R.raw.options);
 
         mVisible = true;

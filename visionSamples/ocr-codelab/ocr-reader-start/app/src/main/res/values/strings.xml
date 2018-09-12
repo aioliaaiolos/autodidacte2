@@ -49,4 +49,6 @@
 
     <string name="txt_message">No Text Available</string>
 
+    <string name="title_activity_test2">test2Activity</string>
+
 </resources>

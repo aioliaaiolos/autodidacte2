@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.ActivityCompat;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.VideoView;
@@ -94,11 +93,10 @@ public class QuestionActivity extends Activity {
             GameEngine.configureGeneralButtons(QuestionActivity.this, video.getWidth(),
                     video.getHeight(), R.id.retour, R.id.options, R.id.aide);
             video.setOnCompletionListener(null);
+            Utils.setAudioVolume(50, QuestionActivity.this);
             GameEngine.askNextItem();
         }
     }
-
-    OnVideoReadyCallback _onVideoReadyCallback = null;
 
     class InitCallbackQuestion implements GameEngine.InitTextToSpeechCallback
     {
@@ -106,10 +104,7 @@ public class QuestionActivity extends Activity {
         {
             int video = GameEngine.getVideoFromGameType(GameEngine.getGameType(), activity);
 
-            if(_onVideoReadyCallback == null)
-                _onVideoReadyCallback = new OnVideoReadyCallback();
-
-            Utils.setOnVideoReadyCallback(_onVideoReadyCallback);
+            Utils.setOnVideoReadyCallback(new OnVideoReadyCallback());
             Utils.stopVideo();
             Utils.playVideo(activity, video);
             mVisible = true;
@@ -124,7 +119,6 @@ public class QuestionActivity extends Activity {
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_test_fullscreen);
-
         GameEngine.init(this, new InitCallbackQuestion());
 
         mVisible = true;
