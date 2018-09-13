@@ -6,13 +6,19 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+
+import java.util.Timer;
+import java.util.TimerTask;
 //import android.app.
 
 public class MainActivity extends AppCompatActivity {
@@ -70,12 +76,33 @@ public class MainActivity extends AppCompatActivity {
     {
         super.onResume();
         if(_mustFinish) {
-            //_mustFinish = false;
-
             ImageView aurevoir = (ImageView)findViewById(R.id.aurevoir);
+            aurevoir.setAdjustViewBounds(true);
             aurevoir.setBackgroundResource(R.drawable.aurevoir);
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            int precision = 1000;
+            int h = size.y;
+            int w = h * (720/702);
+            aurevoir.setLayoutParams(new RelativeLayout.LayoutParams(w, h));
+            aurevoir.setLeft(100);
+            Timer myTimer = new Timer();
+            myTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    MainActivity.this.runOnUiThread(Timer_Tick);
+                }
+
+            }, 300000);
         }
     }
+
+    private Runnable Timer_Tick = new Runnable() {
+        public void run() {
+            System.exit(0);
+        }
+    };
 
     public static boolean _mustFinish = false;
 

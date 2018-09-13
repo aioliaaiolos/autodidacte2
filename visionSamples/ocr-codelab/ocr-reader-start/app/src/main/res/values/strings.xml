@@ -51,4 +51,6 @@
 
     <string name="title_activity_test2">test2Activity</string>
 
+    <string name="title_activity_goodbye">GoodbyeActivity</string>
+
 </resources>

@@ -60,12 +60,11 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_test"
             android:theme="@style/FullscreenTheme" />
-        <activity android:name=".OcrCapture2Activity" />
         <activity
             android:name=".test2Activity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_test2"
-            android:theme="@style/FullscreenTheme"></activity>
+            android:theme="@style/FullscreenTheme" />
     </application>
 
 </manifest>

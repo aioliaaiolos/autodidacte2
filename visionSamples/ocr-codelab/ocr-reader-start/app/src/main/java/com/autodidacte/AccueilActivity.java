@@ -225,8 +225,10 @@ public class AccueilActivity extends Activity {
     public void onBackPressed()
     {
         Utils.stopSounds();
-        super.onBackPressed();
         MainActivity.mustFinish();
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
     }
 
     @Override

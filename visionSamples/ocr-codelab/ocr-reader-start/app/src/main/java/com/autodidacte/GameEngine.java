@@ -140,14 +140,8 @@ public class GameEngine {
     public static void launchOcrCapture()
     {
         Intent capture = null;
-        if(true || (getGameType() == GameType.eTrouverMot)) {
-            capture = new Intent(_questionActivity, OcrCaptureActivity.class);
-            _questionActivity.startActivityForResult(capture, CAPTURE_ACTIVITY);
-        }
-        else {
-            capture = new Intent(_questionActivity, OcrCapture2Activity.class);
-            _questionActivity.startActivityForResult(capture, CAPTURE_ACTIVITY2);
-        }
+        capture = new Intent(_questionActivity, OcrCaptureActivity.class);
+        _questionActivity.startActivityForResult(capture, CAPTURE_ACTIVITY);
     }
 
     public static void setGameType(GameType type)
