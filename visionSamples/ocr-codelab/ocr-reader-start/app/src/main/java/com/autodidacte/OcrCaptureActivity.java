@@ -80,7 +80,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     private com.autodidacte.ui.camera.CameraSource cameraSource;
 
     // lettres
-    com.autodidacte.ui.camera.CameraSource mCameraSource = null;
+    com.autodidacte.ui.camera.CameraSource mCameraSource2 = null;
     SurfaceView mCameraView = null;
     TextView mTextView = null;
     int nTentativeCount = 0;
@@ -101,7 +101,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     private OcrDetectorProcessor m_Detector;
     boolean _mustFinish = false;
 
-    private int kTimeBeforeNext = 15000;
+    private int kTimeBeforeNext = 20000;
 
 
     @Override
@@ -333,6 +333,8 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                         .setFlashMode(useFlash ? Camera.Parameters.FLASH_MODE_TORCH : null)
                         .setFocusMode(autoFocus ? Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO : null)
                         .build();
+
+        //cameraSource.
         _justCreated = true;
     }
 
@@ -362,7 +364,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         } else {
 
             //Initialize camerasource to use high resolution and set Autofocus on.
-            mCameraSource =
+            mCameraSource2 =
                     new com.autodidacte.ui.camera.CameraSource.Builder(getApplicationContext(), textRecognizer)
                     .setFacing(com.google.android.gms.vision.CameraSource.CAMERA_FACING_BACK)
                     .setRequestedPreviewSize(1280, 1024)
@@ -388,7 +390,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                                     requestPermissionID);
                             return;
                         }
-                        mCameraSource.start(mCameraView.getHolder());
+                        mCameraSource2.start(mCameraView.getHolder());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -400,7 +402,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
                 @Override
                 public void surfaceDestroyed(SurfaceHolder holder) {
-                    mCameraSource.stop();
+                    mCameraSource2.stop();
                 }
             });
 

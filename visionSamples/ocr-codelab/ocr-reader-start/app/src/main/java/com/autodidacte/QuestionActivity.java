@@ -140,6 +140,13 @@ public class QuestionActivity extends Activity {
         findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
     }
 
+    @Override
+    public void onBackPressed() {
+        GameEngine.tts.setOnUtteranceProgressListener(null);
+        super.onBackPressed();
+
+    }
+
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
         if(requestCode == GameEngine.INIT_MISSING_LANGUAGE)
@@ -149,8 +156,6 @@ public class QuestionActivity extends Activity {
                 GameEngine._initCallback.execute(GameEngine._currentActivity);
         }
     }
-
-
 
     @Override
     public void onResume() {

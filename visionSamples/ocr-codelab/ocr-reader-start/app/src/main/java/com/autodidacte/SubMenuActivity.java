@@ -138,7 +138,8 @@ public class SubMenuActivity extends Activity implements MediaPlayer.OnVideoSize
     }
 
     public void configureButton(VideoView video) {
-        int color = 0xAA888888;
+        //int color = 0xAA888888;
+        int color = 0x00000000;
         _bouton = (Button) findViewById(R.id.bouton);
         _bouton.setBackgroundColor(color);
         int wScreen = video.getWidth();

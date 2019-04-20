@@ -1,8 +1,10 @@
 package com.autodidacte;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.view.View;
@@ -489,6 +491,7 @@ public class GameEngine {
         }
 
 
+        AudioManager am = (AudioManager)_questionActivity.getSystemService(Context.AUDIO_SERVICE);
         int speakRet = tts.speak(sentence, TextToSpeech.QUEUE_ADD, null, "DEFAULT");
 
         if(!_onTap) {
@@ -658,7 +661,7 @@ public class GameEngine {
         }
     }
 
-    public static void configureGeneralButtons(Activity activity, int videoWidth, int videoHeight, int retourId, int optionsId, int aideId)
+    public static void configureGeneralButtons(final Activity activity, int videoWidth, int videoHeight, int retourId, int optionsId, int aideId)
     {
         Button retour = (Button)activity.findViewById(retourId);
         Button options = (Button)activity.findViewById(optionsId);
@@ -666,7 +669,9 @@ public class GameEngine {
 
         Button arr[] = {retour, options, aide};
 
-        int color = 0xAA888888;
+        // for Debug only
+        //int color = 0xAA888888;
+        int color = 0x00000000;
         for(int i = 0; i < arr.length; i++)
         {
             Button b = arr[i];
@@ -705,10 +710,13 @@ public class GameEngine {
                     Activity parent = ((Activity)v.getContext());
                     if(parent != null) {
                         String name = parent.getLocalClassName();
-                        if(name == "alphabetActivity") {
-                            MainActivity.mustFinish();
+                        if(name.equals("AccueilActivity")) {
+                            AccueilActivity accueil = (AccueilActivity)activity;
+                            if(accueil != null)
+                                accueil.onBackPressed();
                         }
-                        parent.finish();
+                        else
+                            parent.finish();
                     }
                 }
             });

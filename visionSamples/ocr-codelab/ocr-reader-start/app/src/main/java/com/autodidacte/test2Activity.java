@@ -42,7 +42,8 @@ public class test2Activity extends Activity {
 
         Button arr[] = {_trouverLettre, _trouverPremiereLettre, _trouverMot};
 
-        int color = 0xAA888888;
+        //int color = 0xAA888888;
+        int color = 0x00000000;
         for(int i = 0; i < arr.length; i++)
         {
             Button b = arr[i];

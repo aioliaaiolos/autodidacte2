@@ -13,6 +13,9 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
@@ -29,6 +32,8 @@ public class MenuOptionsActivity extends Activity {
      * user interaction before hiding the system UI.
      */
     private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
+
+    private VideoView _video = null;
 
     /**
      * Some older devices needs a small delay between UI widget updates
@@ -78,16 +83,33 @@ public class MenuOptionsActivity extends Activity {
         }
     };
 
-    class OnVideoReadyCallback implements Utils.IOnVideoReadyCallback {
-        public void execute(VideoView video) {
-            int color = 0xAA888888;
+    class OnVideoReadyCallback implements Utils.IOnVideoReadyCallback
+    {
+        public void execute(VideoView video)
+        {
+            _video = video;
+            Timer myTimer = new Timer();
+            myTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    MenuOptionsActivity.this.runOnUiThread(Timer_Tick);
+                }
 
-            int wScreen = video.getWidth();
-            int hScreen = video.getHeight();
+            }, 500, 1000);
+        }
+    }
+
+    private Runnable Timer_Tick = new Runnable() {
+        public void run() {
+            //int color = 0xAA888888;
+            int color = 0x00000000;
+            int wScreen = _video.getWidth();
+            int hScreen = _video.getHeight();
 
             GameEngine.configureGeneralButtons(MenuOptionsActivity.this, wScreen, hScreen, R.id.retour, 0, 0);
         }
-    }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

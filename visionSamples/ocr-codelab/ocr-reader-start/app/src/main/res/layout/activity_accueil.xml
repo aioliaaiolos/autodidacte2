@@ -72,10 +72,4 @@
         android:layout_alignLeft="@+id/videoView"
         android:layout_alignBottom="@+id/videoView"/>
 
-
-
-
-
-
-
 </RelativeLayout>

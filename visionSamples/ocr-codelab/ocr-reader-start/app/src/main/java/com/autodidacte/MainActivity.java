@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
@@ -21,12 +22,13 @@ import java.util.Timer;
 import java.util.TimerTask;
 //import android.app.
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
 
     boolean mCredentialsValidated = false;
 	private static final int RC_HANDLE_CAMERA_PERM = 2;
     static int MY_DATA_CHECK_CODE = 1;
+    boolean _firstTime = true;
 
     public void checkTextToSpeechLanguage()
     {
@@ -76,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
     {
         super.onResume();
         if(_mustFinish) {
-            ImageView aurevoir = (ImageView)findViewById(R.id.aurevoir);
+            ImageView aurevoir = (ImageView)findViewById(R.id.image);
             aurevoir.setAdjustViewBounds(true);
             aurevoir.setBackgroundResource(R.drawable.aurevoir);
             Display display = getWindowManager().getDefaultDisplay();
@@ -84,21 +86,23 @@ public class MainActivity extends AppCompatActivity {
             display.getSize(size);
             int precision = 1000;
             int h = size.y;
-            int w = h * (720/702);
+            int w = (int)((float)h * (float)(720.0f/702.0f));
             aurevoir.setLayoutParams(new RelativeLayout.LayoutParams(w, h));
-            aurevoir.setLeft(100);
+            int leftMargin = (size.x - w) / 2;
+            aurevoir.setTranslationX(leftMargin);
+
             Timer myTimer = new Timer();
             myTimer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    MainActivity.this.runOnUiThread(Timer_Tick);
+                    MainActivity.this.runOnUiThread(Timer_Tick_Exit);
                 }
 
-            }, 300000);
+            }, 30000);
         }
     }
 
-    private Runnable Timer_Tick = new Runnable() {
+    private Runnable Timer_Tick_Exit = new Runnable() {
         public void run() {
             System.exit(0);
         }
@@ -115,25 +119,62 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        setContentView(R.layout.activity_main);
 
+        if(_firstTime) {
+            setContentView(R.layout.activity_main);
+            ImageView loading = (ImageView) findViewById(R.id.image);
+            loading.setBackgroundResource(R.drawable.loading);
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            int precision = 1000;
+            int h = size.y;
+            int w = (int) ((float) h * (float) (720.0f / 702.0f));
+            loading.setLayoutParams(new RelativeLayout.LayoutParams(w, h));
+            int leftMargin = (size.x - w) / 2;
+            loading.setTranslationX(leftMargin);
+            _firstTime = false;
+        }
+
+        Timer myTimer = new Timer();
+        myTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                MainActivity.this.runOnUiThread(Timer_Tick);
+            }
+
+        }, 10000);
+
+        /*
         if(_mustFinish)
             return;
 
+        int rc = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
+        if (rc != PackageManager.PERMISSION_GRANTED) {
+            final String[] permissions = new String[]{Manifest.permission.CAMERA};
+            ActivityCompat.requestPermissions(this, permissions, RC_HANDLE_CAMERA_PERM);
+        } else {
+            SharedPreferences prefs = getPreferences(MODE_PRIVATE);
 
-        boolean test = false;
-        if (test)
-        {
-            Intent test2 = new Intent(MainActivity.this, test2Activity.class);
-            startActivity(test2);
-        }
-        else {
+            boolean flush = false;
+            if (flush) {
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.remove("registred");
+                editor.apply();
+            }
+            initTextToSpeech(this, new InitTextToSpeechCallback());
+        }*/
+    }
 
-            int rc = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
+    private Runnable Timer_Tick = new Runnable() {
+        public void run() {
+            if(_mustFinish)
+                return;
 
+            int rc = ActivityCompat.checkSelfPermission( MainActivity.this, Manifest.permission.CAMERA);
             if (rc != PackageManager.PERMISSION_GRANTED) {
                 final String[] permissions = new String[]{Manifest.permission.CAMERA};
-                ActivityCompat.requestPermissions(this, permissions, RC_HANDLE_CAMERA_PERM);
+                ActivityCompat.requestPermissions(MainActivity.this, permissions, RC_HANDLE_CAMERA_PERM);
             } else {
                 SharedPreferences prefs = getPreferences(MODE_PRIVATE);
 
@@ -143,10 +184,11 @@ public class MainActivity extends AppCompatActivity {
                     editor.remove("registred");
                     editor.apply();
                 }
-                initTextToSpeech(this, new InitTextToSpeechCallback());
+                initTextToSpeech(MainActivity.this, new InitTextToSpeechCallback());
             }
         }
-    }
+    };
+
 
     public static void initTextToSpeech(Activity activity, GameEngine.InitTextToSpeechCallback initCallback)
     {

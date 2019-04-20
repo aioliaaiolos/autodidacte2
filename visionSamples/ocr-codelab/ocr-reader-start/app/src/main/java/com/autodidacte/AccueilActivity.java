@@ -41,7 +41,9 @@ public class AccueilActivity extends Activity {
 
         Button arr[] = {_trouverLettre, _trouverPremiereLettre, _trouverMot/*, _sortie, _options, _aide*/}; //new Button[6];
 
-        int color = 0xAA888888;
+        // For debug only
+        //int color = 0xAA888888;
+        int color = 0x00000000;
         for(int i = 0; i < arr.length; i++)
         {
             Button b = arr[i];
@@ -220,6 +222,7 @@ public class AccueilActivity extends Activity {
         Utils.setOnVideoReadyCallback(new OnVideoReadyCallback());
         Utils.playVideo(this, R.raw.accueil);
     }
+
 
     @Override
     public void onBackPressed()
